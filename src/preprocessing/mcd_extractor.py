@@ -26,7 +26,7 @@ class VariableConfig:
 class MCDConfig:
     """Configuration for MCD data extraction"""
     # Data source
-    data_location: Union[str, Path]
+    data_location: str
     data_version: str = '6.1'
     output_path: Union[str, Path] = './output'
     
@@ -91,7 +91,7 @@ class MCDConfig:
     
     def __post_init__(self):
         """Convert string paths to Path objects"""
-        self.data_location = Path(self.data_location)
+        #self.data_location = Path(self.data_location)
         self.output_path = Path(self.output_path)
     
         """Validate configuration"""
