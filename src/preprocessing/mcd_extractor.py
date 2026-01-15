@@ -478,10 +478,10 @@ def main():
     config = MCDConfig(
         data_location='/discover/nobackup/jli30/systest/MCD_6.1/data/',
         data_version='6.1',
-        output_path='/discover/nobackup/projects/nccs_interns/mvu2/jli/data/hrkey0',
+        output_path='/discover/nobackup/projects/nccs_interns/mvu2/jli/data/hrkey0_test',
         zkey=3,
         hrkey=0,
-        ls_range=(0, 361, 5),
+        ls_range=(0, 30, 5),
         lct_range=(0, 24, 6),
         mars_year=37
     )
