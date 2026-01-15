@@ -1,0 +1,82 @@
+# configs/graphcast_format.yaml
+
+# Input paths
+mcd_data_path: /discover/nobackup/projects/nccs_interns/mvu2/jli/data/hrkey0/temperature/climatology
+era5_sample_path: /discover/nobackup/projects/QEFM/data/FMGenCast/6hr/samples/graph
+era5_stats_path: /discover/nobackup/jli30/QEFM/qefm-core/qefm/models/checkpoints/graphcast/stats_mean_by_level.nc
+output_path: /explore/nobackup/projects/ilab/data/qefm/graphcast/mcd_temperature_experiment
+
+# Date settings
+start_date: "2022-03-20"
+num_days: 361
+
+# Time settings
+time_step_hours: 6
+num_input_steps: 2
+num_output_steps: 1
+
+# Spatial settings
+target_resolution: 1.0
+
+# Experiment
+experiment_name: mcd_temperature_only
+
+# Variable strategies
+variable_strategies:
+  # Use MCD temperature (scaled to ERA5 range)
+  - name: '2m_temperature'
+    strategy: 'mcd'
+    scale_to_era5: true
+  
+  - name: 'temperature'
+    strategy: 'mcd'
+    scale_to_era5: true
+  
+  # Use MCD topography
+  - name: 'geopotential_at_surface'
+    strategy: 'mcd'
+    scale_to_era5: false
+  
+  # Set to ERA5 climatological mean
+  - name: 'geopotential'
+    strategy: 'era5_mean'
+  
+  - name: 'mean_sea_level_pressure'
+    strategy: 'era5_mean'
+  
+  - name: 'vertical_velocity'
+    strategy: 'era5_mean'
+  
+  - name: '10m_u_component_of_wind'
+    strategy: 'era5_mean'
+  
+  - name: '10m_v_component_of_wind'
+    strategy: 'era5_mean'
+  
+  - name: 'u_component_of_wind'
+    strategy: 'era5_mean'
+  
+  - name: 'v_component_of_wind'
+    strategy: 'era5_mean'
+  
+  # Set to constants
+  - name: 'land_sea_mask'
+    strategy: 'constant'
+    constant_value: 1.0
+  
+  - name: 'total_precipitation_6hr'
+    strategy: 'constant'
+    constant_value: 0.0
+  
+  - name: 'specific_humidity'
+    strategy: 'constant'
+    constant_value: 0.002
+  
+  # Keep original ERA5
+  - name: 'toa_incident_solar_radiation'
+    strategy: 'keep_era5'
+
+# File naming patterns
+mcd_filename_pattern: "mcd_temperature_{date}-hr{hour:02d}.nc"
+era5_filename_pattern: "graphcast-dataset-source-era5_date-{date}_res-{res}_levels-13_steps-4.nc"
+output_filename_pattern: "graphcast_dataset_source-era5-mcd_date-{date}-T{hour:02d}_res-{res}_levels-13_steps-{steps}.nc"
