@@ -270,41 +270,7 @@ if __name__ == "__main__":
     query.hrkey = 0  # no hi-res topo
     output_path = "/discover/nobackup/projects/nccs_interns/mvu2/jli/data/hrkey0"
 
-    ##query.zkey = 4  # vertical coordinate key (e.g., pressure)
-    ##levels = [50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 850, 925, 1000]
-    #query.latlon()
-    #vars = query.getextvar(93)
 
-
-
-    # variables needed for GenCast
-    ### 2-D variables
-    # '2m_temperature',
-    # 'mean_sea_level_pressure',
-    # '10m_v_component_of_wind',
-    # '10m_u_component_of_wind',
-    # 'sea_surface_temperature',
-    ###
-    ### 3-D variables
-    # "temperature",
-    # "geopotential",
-    # "u_component_of_wind",
-    # "v_component_of_wind",
-    # "vertical_velocity",
-    # "specific_humidity",
-    ###
-
-    #levels = [50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 850, 925, 1000]
-    # variables available in MCD 6.1
-    #    14: "Surface temperature (K)", \
-	#    15: "Surface pressure (Pa)", \
-    #    18: "Downward Vertical wind component (m/s)" \
-    #    41: "Dust mass mixing ratio (kg/kg)", \
-    #    91: "Pressure (Pa)", \
-    #    92: "Density (kg/m3)", \
-    #    93: "Temperature (K)", \
-    #    94: "W-E wind component (m/s)", \
-    #    95: "S-N wind component (m/s)", \
     for Ls in range(0, 361, 5):
         # solar longitude (Ls) for Mars, 0-360 degrees
         # Ls = (month-1) * 30.0
