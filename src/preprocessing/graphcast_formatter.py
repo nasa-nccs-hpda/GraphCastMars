@@ -453,7 +453,7 @@ class GraphCastFormatter:
     
     def process_all_dates(self) -> Dict[str, List[Path]]:
         """Process all dates in the configuration"""
-        dates = self._generate_date_sequence()
+        dates = self._generate_datetime_sequence()
         results = {}
         
         for date in dates:
