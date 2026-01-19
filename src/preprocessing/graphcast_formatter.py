@@ -342,29 +342,35 @@ class GraphCastFormatter:
         self.regridder = DataRegridder(config.target_resolution)
         self.processor = VariableProcessor(config)
     
-    def _generate_date_sequence(self) -> List[str]:
-        """Generate sequence of dates for processing"""
+    def _generate_datetime_sequence(self) -> List[datetime]:
+        """Generate sequence of start times at configured intervals"""
         start = datetime.strptime(self.config.start_date, '%Y-%m-%d')
-        return [
-            (start + timedelta(days=i)).strftime('%Y-%m-%d')
-            for i in range(self.config.num_days)
-        ]
+        end = start + timedelta(days=self.config.num_days)
+        datetimes = list(pd.date_range(
+            start, end, 
+            freq=f"{self.config.time_step_hours}h").to_pydatetime())
+        return datetimes
     
-    def _load_mcd_files(self, date: str) -> xr.Dataset:
+    def _load_mcd_files(self, date: datetime) -> xr.Dataset:
         """Load MCD files for a specific date"""
-        hours = [f"{h:02d}" for h in range(0, 24, self.config.time_step_hours)]
+        tstamps = pd.date_range(
+            start = date,
+            periods = self.config.num_input_steps + self.config.num_output_steps,
+            freq = f"{self.config.time_step_hours}h"
+        )
         
-        mcd_files = [
-            self.config.mcd_data_path / self.config.mcd_filename_pattern.format(
-                date=date, hour=int(h)
-            )
-            for h in hours
-        ]
-        
+        mcd_files = []
+        for ts in tstamps:
+            h = ts.hour
+            date = ts.strftime('%Y-%m-%d')
+            mcd_files.append(
+                self.config.mcd_data_path / self.config.mcd_filename_pattern.format(
+                    date=date, hour=int(h))
+            )  
         # Check if files exist
         missing = [f for f in mcd_files if not f.exists()]
         if missing:
-            logger.warning(f"Missing MCD files: {missing}")
+            logger.error(f"Missing MCD files: {missing}")
         
         ds = xr.open_mfdataset([str(f) for f in mcd_files if f.exists()], engine='netcdf4')
         return ds
@@ -395,12 +401,14 @@ class GraphCastFormatter:
         
         return xr.open_dataset(era5_file)
     
-    def process_single_date(self, date: str) -> List[Path]:
+    def process_single_date(self, date: datetime) -> List[Path]:
         """Process data for a single date"""
         logger.info(f"Processing date: {date}")
         
         # Load MCD data
         mcd_ds = self._load_mcd_files(date)
+        print(mcd_ds)
+        exit()
         
         # Load ERA5 template
         era5_ds = self._load_era5_template(date)
