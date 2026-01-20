@@ -407,24 +407,22 @@ class GraphCastFormatter:
         
         # Load MCD data
         mcd_ds = self._load_mcd_files(date)
-        print(mcd_ds)
-        exit()
         
         # Load ERA5 template
         era5_ds = self._load_era5_template(date)
         
-        # Extend MCD time dimension
-        mcd_ds = self._extend_time_dim(mcd_ds, n_steps=self.config.num_output_steps)
+        # Extend MCD time dimension (if needed)
+        # mcd_ds = self._extend_time_dim(mcd_ds, n_steps=self.config.num_output_steps)
         
         # Align MCD time coordinates with ERA5
-        num_total_steps = self.config.num_input_steps + self.config.num_output_steps + 1
-        mcd_ds = mcd_ds.assign_coords(time=era5_ds.time.values[:num_total_steps])
+        num_total_steps = self.config.num_input_steps + self.config.num_output_steps
+        # mcd_ds = mcd_ds.assign_coords(time=era5_ds.time.values[:num_total_steps])
         
         # Regrid MCD data
         mcd_ds_regridded = self.regridder.regrid_dataset(mcd_ds)
         
         # Process variables
-        processed_ds = self.processor.process_all_variables(
+        processed_ds = self.processor.process_ßall_variables(
             era5_ds, 
             mcd_ds_regridded,
             num_timesteps=num_total_steps
