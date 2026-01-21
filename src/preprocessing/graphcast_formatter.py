@@ -423,7 +423,7 @@ class GraphCastFormatter:
         mcd_ds_regridded = self.regridder.regrid_dataset(mcd_ds)
         
         # Process variables
-        processed_ds = self.processor.process_ßall_variables(
+        processed_ds = self.processor.process_all_variables(
             era5_ds, 
             mcd_ds_regridded,
             num_timesteps=num_total_steps
