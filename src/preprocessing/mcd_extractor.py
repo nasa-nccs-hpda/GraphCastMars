@@ -271,15 +271,13 @@ class MCDQueryHelper:
                 self.config.mars_gravity, 
                 self.config.mars_radius
             )
-            print(phi.shape)
-            print("Check the shape of geopotential at surface")
             data_vars['geopotential_at_surface'] = xr.DataArray(
                 phi.T,
                 dims=('lat', 'lon'),
                 coords={'lat': coords['lat'], 'lon': coords['lon']},
                 name='geopotential_at_surface'
             )
-        
+        print("PHIS. OK")
         # Add placeholder variables if configured
         if self.config.include_precipitation:
             shape = (1, len(coords['lat']), len(coords['lon']))
@@ -290,7 +288,7 @@ class MCDQueryHelper:
                 name='total_precipitation_6hr',
                 attrs={'description': 'Placeholder - Mars has no precipitation'}
             )
-        
+        print("Precipitation. OK")
         if self.config.include_land_sea_mask:
             shape = (len(coords['lat']), len(coords['lon']))
             data_vars['land_sea_mask'] = xr.DataArray(
@@ -300,7 +298,7 @@ class MCDQueryHelper:
                 name='land_sea_mask',
                 attrs={'description': 'All land for Mars'}
             )
-        
+        print("Land sea mask. OK")
         return xr.Dataset(data_vars)
     
     def extract_3d_variables(self, datetime: datetime) -> xr.Dataset:
