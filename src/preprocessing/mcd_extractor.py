@@ -280,21 +280,21 @@ class MCDQueryHelper:
         
         # Add placeholder variables if configured
         if self.config.include_precipitation:
-            shape = (len(coords['lat']), len(coords['lon']))
+            shape = (1, len(coords['lat']), len(coords['lon']))
             data_vars['total_precipitation_6hr'] = xr.DataArray(
                 np.zeros(shape),
                 dims=('time', 'lat', 'lon'),
-                coords={'lat': coords['lat'], 'lon': coords['lon']},
+                coords=coords,
                 name='total_precipitation_6hr',
                 attrs={'description': 'Placeholder - Mars has no precipitation'}
             )
         
         if self.config.include_land_sea_mask:
-            shape = (1, len(coords['lat']), len(coords['lon']))
+            shape = (len(coords['lat']), len(coords['lon']))
             data_vars['land_sea_mask'] = xr.DataArray(
                 np.ones(shape),
                 dims=('time', 'lat', 'lon'),
-                coords=coords,
+                coords={'lat': coords['lat'], 'lon': coords['lon']},
                 name='land_sea_mask',
                 attrs={'description': 'All land for Mars'}
             )
