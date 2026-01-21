@@ -472,7 +472,7 @@ def main():
         mcd_data_path="/discover/nobackup/projects/nccs_interns/mvu2/jli/data/hrkey0/temperature/climatology",
         era5_sample_path="/discover/nobackup/projects/QEFM/data/FMGenCast/6hr/samples/graph",
         era5_stats_path="/discover/nobackup/jli30/QEFM/qefm-core/qefm/models/checkpoints/graphcast/stats_mean_by_level.nc",
-        output_path="/explore/nobackup/projects/ilab/data/qefm/graphcast/mcd_Temp_wohr",
+        output_path="/explore/nobackup/projects/ilab/data/qefm/graphcast/mcd_Temp_wohr_test",
         start_date="2022-03-20",
         num_days=361,
         experiment_name="mcd_Temp_wohr"
