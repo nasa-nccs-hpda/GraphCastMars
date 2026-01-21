@@ -474,7 +474,7 @@ def main():
         era5_stats_path="/discover/nobackup/jli30/QEFM/qefm-core/qefm/models/checkpoints/graphcast/stats_mean_by_level.nc",
         output_path="/explore/nobackup/projects/ilab/data/qefm/graphcast/mcd_Temp_wohr_test",
         start_date="2022-03-20",
-        num_days=361,
+        num_days=3,
         experiment_name="mcd_Temp_wohr"
     )
     
