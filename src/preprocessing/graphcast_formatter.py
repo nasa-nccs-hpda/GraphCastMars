@@ -392,8 +392,9 @@ class GraphCastFormatter:
     
     def _load_era5_template(self, date: str) -> xr.Dataset:
         """Load ERA5 template file"""
+        ymd = date.strftime('%Y-%m-%d')
         era5_file = self.config.era5_sample_path / self.config.era5_filename_pattern.format(
-            date=date, res=self.config.target_resolution
+            date=ymd, res=self.config.target_resolution
         )
         
         if not era5_file.exists():
