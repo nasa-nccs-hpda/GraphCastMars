@@ -271,6 +271,8 @@ class MCDQueryHelper:
                 self.config.mars_gravity, 
                 self.config.mars_radius
             )
+            print(phi.shape)
+            print("Check the shape of geopotential at surface")
             data_vars['geopotential_at_surface'] = xr.DataArray(
                 phi.T,
                 dims=('lat', 'lon'),
