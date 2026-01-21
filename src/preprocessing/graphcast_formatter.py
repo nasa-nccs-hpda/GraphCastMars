@@ -217,6 +217,13 @@ class DataRegridder:
         target_lon = self.target_grid.lon.values
         
         ds_out = xr.Dataset(regridded_vars, coords={"lat": target_lat, "lon": target_lon})
+
+        # Convert coordinates to float32 to match ERA5
+        ds_out = ds_out.assign_coords({
+            'lat': ds_out.lat.astype(np.float32),
+            'lon': ds_out.lon.astype(np.float32)
+        })
+
         return ds_out
 
 
