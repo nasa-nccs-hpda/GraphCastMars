@@ -221,30 +221,35 @@ class MCDQueryHelper:
     def __init__(self, query, config: MCDConfig):
         self.query = query
         self.config = config
+        self.query.latlon()
     
     def get_variable_slice(self, var_id: int, xz: float) -> np.ndarray:
         """
         Fetch a 2D slice of a variable at specific vertical coordinate.
         """
         self.query.xz = xz
-        self.query.latlon()
+        #self.query.latlon()
         return self.query.getextvar(var_id)
     
     def extract_2d_variables(self, datetime: datetime) -> xr.Dataset:
         """
         Extract all configured 2D variables.
         """
-        
+        coords = {
+            'lat': self.query.ycoord,
+            'lon': self.query.xcoord,
+            'time': [datetime]
+        }
         data_vars = {}
         orography = None  # Store for geopotential calculation
         
         for var_config in self.config.variables_2d:
             field = self.get_variable_slice(var_config.var_id, var_config.xz_level)
-            coords = {
-                'lat': self.query.ycoord,
-                'lon': self.query.xcoord,
-                'time': [datetime]
-            }
+            # coords = {
+            #     'lat': self.query.ycoord,
+            #     'lon': self.query.xcoord,
+            #     'time': [datetime]
+            # }
             
             # Apply scaling for specific variables
             if var_config.name == 'mean_sea_level_pressure':
@@ -305,7 +310,12 @@ class MCDQueryHelper:
         
         SIMPLIFIED: Uses config instead of hardcoded variables and levels
         """
-        
+        coords = {
+            'time': [datetime],
+            'lat': self.query.ycoord,
+            'lon': self.query.xcoord,
+            'level': self.config.pressure_levels
+        }        
         data_vars = {}
         
         for var_config in self.config.variables_3d:
@@ -316,12 +326,12 @@ class MCDQueryHelper:
                 field = self.get_variable_slice(var_config.var_id, height)
                 field_list.append(field[np.newaxis, :, :, np.newaxis])
             
-            coords = {
-                'time': [datetime],
-                'lat': self.query.ycoord,
-                'lon': self.query.xcoord,
-                'level': self.config.pressure_levels
-            }
+            # coords = {
+            #     'time': [datetime],
+            #     'lat': self.query.ycoord,
+            #     'lon': self.query.xcoord,
+            #     'level': self.config.pressure_levels
+            # }
             
             # Stack along vertical dimension
             field_3d = np.concatenate(field_list, axis=-1)
