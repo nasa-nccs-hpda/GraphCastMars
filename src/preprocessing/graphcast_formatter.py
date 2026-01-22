@@ -263,6 +263,9 @@ class VariableProcessor:
     def scale_to_era5_range(self, mcd_var: xr.DataArray, era5_var: xr.DataArray, 
                            var_name: str) -> xr.DataArray:
         """Scale MCD variable to match ERA5 range"""
+        print("Scaling ", var_name)
+        print("MCD var dims ", mcd_var.dims)
+        print("ERA5 var dims ", era5_var.dims)
         # Use first 6 timesteps of ERA5 as reference
         era5_sub = era5_var.isel(time=slice(0, 6))
         
