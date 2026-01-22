@@ -13,6 +13,7 @@ gradient_clip: 5.0
 
 # Data split
 train_split: 0.8
+target_lead_times: "6h" 
 
 # Early stopping
 patience: 10

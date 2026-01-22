@@ -84,8 +84,13 @@ class GraphCastTrainer:
         )
         self.opt_state = self.optimizer.init(self.params)
         
-        # Data loader
-        self.data_loader = MarsDataLoader(config.data_dir, config.batch_size)
+        # Create data loader with correct target_lead_times
+        target_lead_times = slice(config.target_lead_times, config.target_lead_times)
+        self.data_loader = MarsDataLoader(
+            config.data_dir, 
+            config.batch_size,
+            target_lead_times=target_lead_times
+        )
     
     def train_step(self, inputs, targets, forcings):
         """Single training step"""
