@@ -139,6 +139,10 @@ class GraphCastTrainer:
             for inputs, targets, forcings in self.data_loader.data_iterator(
                 train_files, self.task_config, shuffle=True
             ):
+                print(inputs)
+                print(targets)
+                print(forcings)
+                exit()
                 self.params, self.state, self.opt_state, loss, diagnostics = \
                     self.train_step(inputs, targets, forcings)
                 
