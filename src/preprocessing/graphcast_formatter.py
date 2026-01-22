@@ -355,8 +355,8 @@ class VariableProcessor:
             processed_var = self.apply_strategy(var_name, era5_ds, mcd_ds)
             print("Processed var dims ", processed_var.dims)
             # Replace first num_timesteps with processed data
-            # if mcd_ds is not None and var_name in mcd_ds:
-            if 'time' in processed_var.dims:
+            if mcd_ds is not None and var_name in mcd_ds:
+            #if 'time' in processed_var.dims:
                 result_ds[var_name][0, 0:num_timesteps, ...] = processed_var[0:num_timesteps, ...]
             else:
                 result_ds[var_name] = processed_var
