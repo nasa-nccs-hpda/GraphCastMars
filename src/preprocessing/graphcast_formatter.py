@@ -295,13 +295,14 @@ class VariableProcessor:
         """Apply processing strategy to a variable"""
         strategy = self.strategy_map.get(var_name)
         num_timesteps = self.config.num_input_steps + self.config.num_output_steps
+        era5_ds = era5_ds.isel(time=slice(0, num_timesteps))
         
         if strategy is None:
             logger.warning(f"No strategy defined for {var_name}, keeping ERA5 data")
-            return era5_ds[var_name].isel(time=slice(0, num_timesteps))
+            return era5_ds[var_name]
         
         if strategy.strategy == 'keep_era5':
-            return era5_ds[var_name].isel(time=slice(0, num_timesteps))
+            return era5_ds[var_name]
         
         elif strategy.strategy == 'constant':
             # Set all values to constant
