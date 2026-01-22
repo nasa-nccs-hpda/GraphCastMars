@@ -33,6 +33,7 @@ class TrainingConfig:
     patience: int = 10
     save_every: int = 10
     
+    target_lead_times: str = "6h"
     @classmethod
     def from_yaml(cls, config_path: str):
         """Load from YAML file"""
