@@ -265,9 +265,9 @@ class VariableProcessor:
         """Scale MCD variable to match ERA5 range"""
         print("Scaling ", var_name)
         print("MCD var dims ", mcd_var.dims)
-        print("MCD dims length ", len(mcd_var.dims))
+        print("MCD size ", mcd_var.sizes)
         print("ERA5 var dims ", era5_var.dims)
-        print("ERA5 dims length ", len(era5_var.dims))
+        print("ERA5 size ", era5_var.sizes)
         # Use first 6 timesteps of ERA5 as reference
         era5_sub = era5_var.isel(time=slice(0, 6))
         
