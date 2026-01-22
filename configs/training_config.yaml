@@ -1,7 +1,7 @@
 # Training configuration
 checkpoint_path: /discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/params_GraphCast_small.npz
 stats_dir: /discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast
-data_dir: /discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/data
+data_dir: /discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/data
 output_dir: ./output/training
 
 # Training hyperparameters
