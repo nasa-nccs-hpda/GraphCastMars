@@ -12,11 +12,11 @@ weight_decay: 0.01
 gradient_clip: 5.0
 
 # Data split
-train_split: 0.8
+#train_split: 0.8
 target_lead_times: "6h" 
 
 # Early stopping
-patience: 10
+#patience: 10
 
 # Checkpointing
 save_every: 10  # Save every N steps

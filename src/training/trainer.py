@@ -3,9 +3,9 @@
 import jax
 import optax
 import numpy as np
+import functools
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Dict, Any, Optional
 import logging
 
 from .model_builder import ModelBuilder
@@ -28,19 +28,34 @@ class TrainingConfig:
     learning_rate: float = 1e-4
     weight_decay: float = 0.01
     gradient_clip: float = 5.0
-    
-    train_split: float = 0.8
-    patience: int = 10
     save_every: int = 10
-    
     target_lead_times: str = "6h"
+    
     @classmethod
     def from_yaml(cls, config_path: str):
-        """Load from YAML file"""
         import yaml
         with open(config_path, 'r') as f:
-            config_dict = yaml.safe_load(f)
-        return cls(**config_dict)
+            return cls(**yaml.safe_load(f))
+
+
+def grads_fn(params, state, model_config, task_config, loss_fn, inputs, targets, forcings):
+    """Compute loss, diagnostics, and gradients"""
+    def _aux(params, state, i, t, f):
+        (loss, diagnostics), next_state = loss_fn.apply(
+            params, state, jax.random.PRNGKey(0), model_config, task_config, i, t, f
+        )
+        return loss, (diagnostics, next_state)
+    
+    (loss, (diagnostics, next_state)), grads = jax.value_and_grad(
+        _aux, has_aux=True
+    )(params, state, inputs, targets, forcings)
+    
+    return loss, diagnostics, next_state, grads
+
+
+def with_configs(fn, model_config, task_config, loss_fn):
+    """Bind configs to function using functools.partial"""
+    return functools.partial(fn, model_config=model_config, task_config=task_config, loss_fn=loss_fn)
 
 
 class GraphCastTrainer:
@@ -66,125 +81,96 @@ class GraphCastTrainer:
             self.mean_by_level, self.stddev_by_level, self.diffs_stddev_by_level
         )
         
-        self.forward_fn = self.model_builder.build_predictor()
         self.loss_fn = self.model_builder.build_loss_fn()
         
-        # JIT compile
-        self.loss_fn_apply = jax.jit(self.loss_fn.apply)
+        # JIT compile grads function
+        self.grads_fn_jitted = jax.jit(
+            with_configs(grads_fn, self.model_config, self.task_config, self.loss_fn)
+        )
         
         # Setup optimizer
         self.optimizer = optax.chain(
             optax.clip_by_global_norm(config.gradient_clip),
-            optax.adamw(
-                learning_rate=config.learning_rate,
-                b1=0.9,
-                b2=0.999,
-                eps=1e-8,
-                weight_decay=config.weight_decay
-            )
+            optax.adamw(learning_rate=config.learning_rate, b1=0.9, b2=0.999, 
+                       eps=1e-8, weight_decay=config.weight_decay)
         )
         self.opt_state = self.optimizer.init(self.params)
         
-        # Create data loader with correct target_lead_times
+        # Data loader
         target_lead_times = slice(config.target_lead_times, config.target_lead_times)
-        self.data_loader = MarsDataLoader(
-            config.data_dir, 
-            config.batch_size,
-            target_lead_times=target_lead_times
-        )
-    
-    def train_step(self, inputs, targets, forcings):
-        """Single training step"""
-        
-        def compute_loss(params):
-            (loss, diagnostics), new_state = self.loss_fn_apply(
-                params, self.state, jax.random.PRNGKey(0),
-                inputs, targets, forcings
-            )
-            return loss, (diagnostics, new_state)
-        
-        (loss, (diagnostics, new_state)), grads = jax.value_and_grad(
-            compute_loss, has_aux=True
-        )(self.params)
-        
-        updates, new_opt_state = self.optimizer.update(grads, self.opt_state, self.params)
-        new_params = optax.apply_updates(self.params, updates)
-        
-        return new_params, new_state, new_opt_state, loss, diagnostics
-    
-    def val_step(self, inputs, targets, forcings):
-        """Single validation step"""
-        (loss, diagnostics), _ = self.loss_fn_apply(
-            self.params, self.state, jax.random.PRNGKey(0),
-            inputs, targets, forcings
-        )
-        return loss
+        self.data_loader = MarsDataLoader(config.data_dir, config.batch_size, target_lead_times)
     
     def train(self):
         """Main training loop"""
         files = self.data_loader.get_file_list()
-        train_files, val_files = self.data_loader.split_train_val(files, self.config.train_split)
+        logger.info(f"Found {len(files)} training files")
         
-        logger.info(f"Train files: {len(train_files)}, Val files: {len(val_files)}")
-        
-        best_val_loss = float('inf')
-        patience_counter = 0
+        best_loss = float('inf')
         global_step = 0
         
         for epoch in range(self.config.num_epochs):
             logger.info(f"Epoch {epoch + 1}/{self.config.num_epochs}")
             
-            # Training
             epoch_losses = []
+            
             for inputs, targets, forcings in self.data_loader.data_iterator(
-                train_files, self.task_config, shuffle=True
+                files, self.task_config, shuffle=True
             ):
-                print(inputs)
-                print(targets)
-                print(forcings)
-                exit()
-                self.params, self.state, self.opt_state, loss, diagnostics = \
-                    self.train_step(inputs, targets, forcings)
+                # Compute gradients
+                loss, diagnostics, next_state, grads = self.grads_fn_jitted(
+                    params=self.params, state=self.state,
+                    inputs=inputs, targets=targets, forcings=forcings
+                )
+                
+                # Update parameters
+                updates, self.opt_state = self.optimizer.update(grads, self.opt_state, self.params)
+                self.params = optax.apply_updates(self.params, updates)
+                self.state = next_state
                 
                 loss_value = float(loss)
                 epoch_losses.append(loss_value)
                 
+                # Logging
                 if global_step % 10 == 0:
                     logger.info(f"Step {global_step}, Loss: {loss_value:.6f}")
                 
+                if global_step % 50 == 0:
+                    print("diagnostics:", diagnostics)
+                    print("loss:", loss)
+                
+                # Checkpointing
                 if (global_step + 1) % self.config.save_every == 0:
                     ckpt_path = f"{self.config.output_dir}/checkpoint_step_{global_step:05d}.npz"
                     save_checkpoint(ckpt_path, self.params, self.model_config, self.task_config)
+                    logger.info(f"Saved checkpoint: {ckpt_path}")
+                
+                # Save best model
+                if loss_value < best_loss:
+                    best_loss = loss_value
+                    best_path = f"{self.config.output_dir}/best_model.npz"
+                    save_checkpoint(best_path, self.params, self.model_config, self.task_config)
+                    logger.info(f"New best model! Loss: {best_loss:.6f}")
                 
                 global_step += 1
             
-            avg_train_loss = np.mean(epoch_losses)
-            logger.info(f"Epoch {epoch + 1} - Avg Train Loss: {avg_train_loss:.6f}")
-            
-            # Validation
-            val_losses = []
-            for inputs, targets, forcings in self.data_loader.data_iterator(
-                val_files, self.task_config, shuffle=False
-            ):
-                val_loss = self.val_step(inputs, targets, forcings)
-                val_losses.append(float(val_loss))
-            
-            avg_val_loss = np.mean(val_losses)
-            logger.info(f"Epoch {epoch + 1} - Avg Val Loss: {avg_val_loss:.6f}")
-            
-            # Best model
-            if avg_val_loss < best_val_loss:
-                best_val_loss = avg_val_loss
-                patience_counter = 0
-                best_path = f"{self.config.output_dir}/best_model.npz"
-                save_checkpoint(best_path, self.params, self.model_config, self.task_config)
-                logger.info(f"New best model! Val loss: {best_val_loss:.6f}")
-            else:
-                patience_counter += 1
-            
-            # Early stopping
-            if patience_counter >= self.config.patience:
-                logger.info(f"Early stopping at epoch {epoch + 1}")
-                break
+            avg_loss = np.mean(epoch_losses) if epoch_losses else float('nan')
+            logger.info(f"Epoch {epoch + 1} - Avg Loss: {avg_loss:.6f}")
         
         logger.info("Training complete!")
+
+
+def main():
+    import argparse
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    
+    parser = argparse.ArgumentParser(description="Train GraphCast on Mars data")
+    parser.add_argument("--config", type=str, required=True, help="Path to training config YAML")
+    args = parser.parse_args()
+    
+    config = TrainingConfig.from_yaml(args.config)
+    trainer = GraphCastTrainer(config)
+    trainer.train()
+
+
+if __name__ == "__main__":
+    main()
