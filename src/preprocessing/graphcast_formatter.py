@@ -357,6 +357,8 @@ class VariableProcessor:
             print("Processed var dims ", processed_var.dims)
             # Replace first num_timesteps with processed data
             if 'time' in processed_var.dims:
+                print("Has time dim")
+                print(processed_var.values.shape)
                 result_ds[var_name].values[0, 0:num_timesteps, ...] = processed_var.values[0:num_timesteps, ...]
             else:
                 result_ds[var_name] = processed_var
