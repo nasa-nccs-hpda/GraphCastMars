@@ -357,11 +357,8 @@ class VariableProcessor:
             print("Processed var dims ", processed_var.dims)
             # Replace first num_timesteps with processed data
             if mcd_ds is not None and var_name in mcd_ds and 'time' in processed_var.dims:
-            #if 'time' in processed_var.dims:
-                print('IF')
-                result_ds[var_name][0, 0:num_timesteps, ...] = processed_var[0:num_timesteps, ...]
+                result_ds[var_name].values[0, 0:num_timesteps, ...] = processed_var.values[0:num_timesteps, ...]
             else:
-                print('ELSE')
                 result_ds[var_name] = processed_var
         
         return result_ds
