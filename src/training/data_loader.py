@@ -53,10 +53,10 @@ class MarsDataLoader:
                 **dataclasses.asdict(task_config)
             )
             
-            logger.debug(f"Loaded: {file_path.name}")
-            logger.debug(f"  Inputs dims: {inputs.dims.mapping}")
-            logger.debug(f"  Targets dims: {targets.dims.mapping}")
-            logger.debug(f"  Forcings dims: {forcings.dims.mapping}")
+            logger.info(f"Loaded: {file_path.name}")
+            logger.info(f"  Inputs dims: {inputs.dims.mapping}")
+            logger.info(f"  Targets dims: {targets.dims.mapping}")
+            logger.info(f"  Forcings dims: {forcings.dims.mapping}")
             
             return (inputs, targets, forcings)
             
