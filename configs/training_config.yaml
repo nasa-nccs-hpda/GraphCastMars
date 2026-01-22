@@ -1,0 +1,21 @@
+# Training configuration
+checkpoint_path: /explore/nobackup/people/jli30/workspace/graph_mcd/qefm-core-local/qefm/models/checkpoints/graphcast/params_GraphCast_small.npz
+stats_dir: /explore/nobackup/people/jli30/workspace/graph_mcd/qefm-core-local/qefm/models/checkpoints/graphcast
+data_dir: /explore/nobackup/projects/ilab/data/qefm/graphcast/mcd_Temp_wohr/subset30
+output_dir: ./output/training
+
+# Training hyperparameters
+num_epochs: 100
+batch_size: 1
+learning_rate: 0.0001
+weight_decay: 0.01
+gradient_clip: 5.0
+
+# Data split
+train_split: 0.8
+
+# Early stopping
+patience: 10
+
+# Checkpointing
+save_every: 10  # Save every N steps
