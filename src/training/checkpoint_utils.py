@@ -6,7 +6,7 @@ from typing import Dict, Any
 from graphcast import checkpoint, graphcast
 
 
-def load_checkpoint(checkpoint_path: str) -> checkpoint.CheckPoint:
+def load_checkpoint(checkpoint_path: str) -> graphcast.CheckPoint:
     """Load GraphCast checkpoint"""
     with open(checkpoint_path, "rb") as f:
         ckpt = checkpoint.load(f, graphcast.CheckPoint)
