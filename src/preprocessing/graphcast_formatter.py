@@ -194,6 +194,23 @@ class DataRegridder:
         
         for var in ds.data_vars:
             dims = ds[var].dims
+            
+            # Handle static variables (no time dimension)
+            if 'time' not in dims:
+                if set(dims) == {'lat', 'lon'}:
+                    # Simple 2D variable
+                    regridded_vars[var] = regridder(ds[var])
+                else:
+                    # Has other dimensions but no time (e.g., level only)
+                    other_dims = [d for d in dims if d not in ["lat", "lon"]]
+                    stacked = ds[var].stack(z=other_dims)
+                    regridded = regridder(stacked)
+                    regridded = regridded.unstack("z")
+                    regridded = regridded.transpose(*other_dims, "lat", "lon")
+                    regridded_vars[var] = regridded
+                continue
+            
+            # Handle variables with time dimension
             out_list = []
             
             for t in ds.time:
