@@ -52,7 +52,7 @@ class GraphCastFormatterConfig:
     variable_strategies: List[VariableStrategy] = field(default_factory=list)
     
     # MCD file naming
-    mcd_filename_pattern: str = "mcd_output_{date}-hr{hour:02d}.nc"
+    mcd_filename_pattern: str = "mcd_output_{date}_hr{hour:02d}.nc"
     
     # ERA5 file naming
     era5_filename_pattern: str = "graphcast-dataset-source-era5_date-{date}_res-{res}_levels-13_steps-4.nc"
