@@ -330,8 +330,9 @@ class VariableProcessor:
         result_ds = era5_ds.copy()
         
         for var_name in era5_ds.data_vars:
+            print("At var ", var_name)
             processed_var = self.apply_strategy(var_name, era5_ds, mcd_ds)
-            
+            print("Processed var dims ", processed_var.dims)
             # Replace first num_timesteps with processed data
             # if mcd_ds is not None and var_name in mcd_ds:
             if 'time' in processed_var.dims:
