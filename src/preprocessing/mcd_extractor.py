@@ -213,6 +213,12 @@ class MarsPhysics:
         
         earth_date = ref_epoch + timedelta(days=year_offset + delta_days)
         return earth_date.strftime("%Y-%m-%d")
+    
+    @staticmethod
+    def ls_to_date(Ls: int) -> str:
+        ref_date = datetime(2022, 3, 20)  # Approximate Earth date for Mars Ls=0 in MY36
+        delta_day = Ls
+        return (ref_date + timedelta(days=delta_day)).strftime("%Y-%m-%d")
 
 
 class MCDQueryHelper:
@@ -374,12 +380,7 @@ class MCDExtractor:
         self.query.loct = lct
         
         # Convert to Earth datetime
-        ymd = MarsPhysics.ls_to_earth_date(
-            ls, 
-            self.config.mars_year,
-            self.config.mars_year_reference_date,
-            self.config.mars_year_days
-        )
+        ymd = MarsPhysics.ls_to_date(ls)
         dt_str = f"{ymd}T{int(lct):02d}:00:00"
         dt_stamp = pd.to_datetime(dt_str)
         
@@ -408,7 +409,8 @@ class MCDExtractor:
     
     def _generate_filename(self, ls: float, lct: float) -> str:
         """Generate output filename"""
-        return f"mcd_output_Ls{int(ls):02d}_hr{int(lct):02d}.nc"
+        ymd = MarsPhysics.ls_to_date(ls)
+        return f"mcd_output_{ymd}_hr{int(lct):02d}.nc"
     
     def extract_range(self, 
                      ls_range: Optional[Tuple[int, int, int]] = None,
@@ -490,7 +492,7 @@ def main():
         output_path='/discover/nobackup/projects/nccs_interns/mvu2/jli/data/hrkey0_test',
         zkey=3,
         hrkey=0,
-        ls_range=(0, 30, 5),
+        ls_range=(0, 5, 1),
         lct_range=(0, 24, 6),
         mars_year=37
     )
