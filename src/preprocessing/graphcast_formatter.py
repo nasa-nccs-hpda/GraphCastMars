@@ -52,7 +52,7 @@ class GraphCastFormatterConfig:
     variable_strategies: List[VariableStrategy] = field(default_factory=list)
     
     # MCD file naming
-    mcd_filename_pattern: str = "mcd_temperature_{date}-hr{hour:02d}.nc"
+    mcd_filename_pattern: str = "mcd_output_{date}-hr{hour:02d}.nc"
     
     # ERA5 file naming
     era5_filename_pattern: str = "graphcast-dataset-source-era5_date-{date}_res-{res}_levels-13_steps-4.nc"
@@ -380,6 +380,12 @@ class GraphCastFormatter:
             logger.error(f"Missing MCD files: {missing}")
         
         ds = xr.open_mfdataset([str(f) for f in mcd_files if f.exists()], engine='netcdf4')
+
+        # Remove time dimension from static variables
+        static_vars = ['land_sea_mask', 'geopotential_at_surface']
+        for var in static_vars:
+            if var in ds and 'time' in ds[var].dims:
+                ds[var] = ds[var].isel(time=0).drop_vars('time')
         return ds
     
     def _extend_time_dim(self, ds: xr.Dataset, n_steps: int = 1) -> xr.Dataset:
@@ -476,7 +482,7 @@ class GraphCastFormatter:
 def main():
     """Example usage"""
     config = GraphCastFormatterConfig(
-        mcd_data_path="/discover/nobackup/projects/nccs_interns/mvu2/jli/data/hrkey0/temperature/climatology",
+        mcd_data_path="/discover/nobackup/projects/nccs_interns/mvu2/jli/data/hrkey0_test",
         era5_sample_path="/discover/nobackup/projects/QEFM/data/FMGenCast/6hr/samples/graph",
         era5_stats_path="/discover/nobackup/jli30/QEFM/qefm-core/qefm/models/checkpoints/graphcast/stats_mean_by_level.nc",
         output_path="/explore/nobackup/projects/ilab/data/qefm/graphcast/mcd_Temp_wohr_test",
