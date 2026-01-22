@@ -408,7 +408,14 @@ class MCDExtractor:
     
     def _generate_filename(self, ls: float, lct: float) -> str:
         """Generate output filename"""
-        return f"mcd_output_Ls{int(ls):03d}_hr{int(lct):02d}.nc"
+                # Convert to Earth datetime
+        ymd = MarsPhysics.ls_to_earth_date(
+            ls, 
+            self.config.mars_year,
+            self.config.mars_year_reference_date,
+            self.config.mars_year_days
+        )
+        return f"mcd_output_{ymd}_hr{int(lct):02d}.nc"
     
     def extract_range(self, 
                      ls_range: Optional[Tuple[int, int, int]] = None,
