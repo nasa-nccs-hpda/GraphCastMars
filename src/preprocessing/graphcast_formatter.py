@@ -474,7 +474,7 @@ class GraphCastFormatter:
         
         for i, hour in enumerate(hours):
             output_file = self.config.output_path / self.config.output_filename_pattern.format(
-                date=date,
+                date=date.strftime('%Y-%m-%d'),
                 hour=hour,
                 res=self.config.target_resolution,
                 steps=self.config.num_input_steps + self.config.num_output_steps
