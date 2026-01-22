@@ -276,6 +276,8 @@ class VariableProcessor:
         orig_max = mcd_var.max(dim=("lat", "lon"))
         target_min = era5_sub.min(dim=("lat", "lon"))
         target_max = era5_sub.max(dim=("lat", "lon"))
+        print("target min shape", target_min.sizes)
+        exit()
         
         # Scale each timestep
         scaled_list = []
