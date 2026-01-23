@@ -22,6 +22,7 @@ cd GraphCastMars
 
 ```bash
 # Create virtual environment
+module load anaconda ## Mel added
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
