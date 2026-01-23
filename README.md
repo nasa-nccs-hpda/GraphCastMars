@@ -35,6 +35,7 @@ pip install -r requirements.txt
 ```bash
 # Clone GraphCast into external/
 bash scripts/setup_dev_env.sh
+bash scripts/setup_environment.sh ## <- Mel switch to this
 ```
 
 Or manually:
