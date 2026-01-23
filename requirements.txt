@@ -1,0 +1,49 @@
+# requirements.txt
+
+# Core dependencies
+click>=8.1.0
+pyyaml>=6.0.1
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Data processing
+xarray>=2023.1.0
+netCDF4>=1.6.4
+pandas>=2.0.0
+
+# Regridding
+xesmf>=0.8.2
+
+# JAX ecosystem (choose based on your hardware)
+# For CUDA 11.8
+jax[cuda11_pip]>=0.4.20
+# For CUDA 12.x (comment out above, uncomment below)
+# jax[cuda12_pip]>=0.4.20
+# For CPU only (comment out above, uncomment below)
+# jax[cpu]>=0.4.20
+
+# Deep learning
+dm-haiku>=0.0.10
+optax>=0.1.7
+chex>=0.1.8
+
+# GraphCast dependencies
+# Note: GraphCast itself is in external/graphcast, not installed via pip
+# But these are its dependencies:
+dm-tree>=0.1.8
+toolz>=0.12.0
+typing-extensions>=4.5.0
+
+# Visualization (optional)
+matplotlib>=3.7.0
+cartopy>=0.22.0
+
+# Experiment tracking (optional)
+# wandb>=0.15.0
+
+# Development and testing (optional)
+# pytest>=7.4.0
+# pytest-cov>=4.1.0
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.5.0

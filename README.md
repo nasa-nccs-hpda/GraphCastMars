@@ -235,7 +235,7 @@ python simple_train.py
 ## Directory Structure After Setup
 
 ```
-graphcast-mars/
+GraphCastMars/
 ├── external/
 │   └── graphcast/              # GraphCast source (cloned)
 ├── data/
