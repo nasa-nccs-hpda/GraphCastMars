@@ -34,7 +34,7 @@ pip install -r requirements.txt
 
 ```bash
 # Clone GraphCast into external/
-bash scripts/setup_dev_env.sh
+# bash scripts/setup_dev_env.sh ## Mel comment out
 bash scripts/setup_environment.sh ## <- Mel switch to this
 ```
 
@@ -77,10 +77,13 @@ cp /discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/* 
 
 ```bash
 # Generate extraction config
+cd GraphCastMars
+
 python -c "
 from src.preprocessing.mcd_extractor import MCDConfig
 config = MCDConfig(
-    data_location='/path/to/your/mcd/data',
+    # data_location='/path/to/your/mcd/data', #Mel comment out
+    data_location ='data/mcd_raw' #Mel add
     output_path='./data/processed/extracted',
     ls_range=(0, 361, 5),
     lct_range=(0, 24, 6)
