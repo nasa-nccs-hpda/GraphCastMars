@@ -14,8 +14,8 @@ Fine-tune DeepMind's GraphCast weather prediction model on Mars Climate Database
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/graphcast-mars.git
-cd graphcast-mars
+git clone https://github.com/nasa-nccs-hpda/GraphCastMars.git
+cd GraphCastMars
 ```
 
 ### 2. Setup Python Environment
