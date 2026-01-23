@@ -64,6 +64,9 @@ mkdir -p configs
 ### 5. Download Required Files
 
 Place the following files in `checkpoints/graphcast/`:
+cd checkpoints/graphcast # Mel add
+cp /discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/* . #Mel Add
+
 - `params_GraphCast_small.npz` - Pre-trained GraphCast checkpoint
 - `stats_mean_by_level.nc` - Normalization mean statistics
 - `stats_stddev_by_level.nc` - Normalization std deviation statistics
