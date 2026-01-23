@@ -39,7 +39,7 @@ def save_checkpoint(
     """Save model checkpoint"""
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     
-    ckpt = checkpoint.CheckPoint(
+    ckpt = graphcast.CheckPoint(
         params=params,
         model_config=model_config,
         task_config=task_config,
