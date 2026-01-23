@@ -65,6 +65,7 @@ mkdir -p configs
 
 Place the following files in `checkpoints/graphcast/`:
 cd checkpoints/graphcast # Mel add
+
 cp /discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/* . #Mel Add
 
 - `params_GraphCast_small.npz` - Pre-trained GraphCast checkpoint
