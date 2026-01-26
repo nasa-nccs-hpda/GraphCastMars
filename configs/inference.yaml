@@ -1,0 +1,41 @@
+# configs/inference.yaml
+
+# Model checkpoint
+model_checkpoint: /path/to/graphcast_mars_checkpoint.npz
+
+# Normalization statistics
+stats_dir: /path/to/stats/
+stats_files:
+  mean: stats_mean_by_level.nc
+  stddev: stats_stddev_by_level.nc
+  diffs_stddev: stats_diffs_stddev_by_level.nc
+
+# Input data
+input_data_path: /path/to/initial_conditions.nc  # Can be a file or directory
+output_path: ./predictions
+
+# Prediction settings
+num_steps: 10                    # Number of forecast steps
+lead_time_hours: 6               # Hours per step
+autoregressive: true             # Use previous prediction as next input
+
+# Model configuration
+model_config:
+  resolution: 1.0                # Degrees
+  mesh_size: 5                   # GraphCast mesh resolution
+  latent_size: 512
+  gnn_msg_steps: 16
+  hidden_layers: 1
+  radius_query_fraction_edge_length: 0.6
+
+# Output options
+save_format: netcdf              # netcdf, zarr
+save_intermediate: true          # Save each timestep
+compress: true
+
+# Visualization
+generate_plots: true
+plot_variables:
+  - 2m_temperature
+  - geopotential_at_surface
+plot_format: png
