@@ -43,7 +43,7 @@ class GraphCastFormatterConfig:
     # Time settings
     time_step_hours: int = 6
     num_input_steps: int = 2  # Number of input timesteps
-    num_output_steps: int = 1  # Number of output/forecast timesteps
+    num_output_steps: int = 5  # Number of output/forecast timesteps
     
     # Spatial settings
     target_resolution: float = 1.0  # degrees
@@ -476,8 +476,6 @@ class GraphCastFormatter:
         # Extend MCD time dimension (if needed)
         extend_ds = self._extend_time_dim(processed_ds, n_steps=self.config.num_output_steps)
 
-        print("extend ds sizes:", extend_ds.sizes)
-        exit()
         # Align MCD time coordinates with ERA5
         #num_total_steps = self.config.num_input_steps + self.config.num_output_steps
         # mcd_ds = mcd_ds.assign_coords(time=era5_ds.time.values[:num_total_steps])
