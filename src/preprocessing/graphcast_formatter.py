@@ -357,12 +357,8 @@ class VariableProcessor:
             processed_var = self.apply_strategy(var_name, era5_ds, mcd_ds)
             # Replace first num_timesteps with processed data
             if 'time' in processed_var.dims:
-                print("Variable:", var_name)
-                print("size", processed_var.sizes)
                 result_ds[var_name].values[0, 0:num_timesteps, ...] = processed_var.values[0:num_timesteps, ...]
             else:
-                print("Variable:", var_name)
-                print("size", processed_var.sizes)
                 result_ds[var_name] = processed_var
         
         return result_ds
@@ -416,18 +412,34 @@ class GraphCastFormatter:
         return ds
     
     def _extend_time_dim(self, ds: xr.Dataset, n_steps: int = 1) -> xr.Dataset:
-        """Extend dataset by duplicating last timesteps"""
+        """Extend dataset by duplicating last timesteps,
+        but only for variables that have a time dimension.
+        """
         time = ds.time
-        dt = (time[1] - time[0])
-        
+        dt = time[1] - time[0]
+
+        # Variables that depend on time
+        time_vars = [v for v in ds.data_vars if "time" in ds[v].dims]
+        # Variables that do NOT depend on time
+        static_vars = [v for v in ds.data_vars if "time" not in ds[v].dims]
+
+        ds_time = ds[time_vars]
+
         new_steps = []
         for i in range(n_steps):
-            template = ds.isel(time=i)
+            template = ds_time.isel(time=-1)
             new_time = time[-1] + (i + 1) * dt
             new_step = template.assign_coords(time=new_time)
             new_steps.append(new_step)
-        
-        ds_extended = xr.concat([ds] + new_steps, dim='time')
+
+        ds_time_extended = xr.concat([ds_time] + new_steps, dim="time")
+
+        # Merge back static variables (unchanged)
+        ds_extended = xr.merge(
+            [ds_time_extended, ds[static_vars]],
+            compat="no_conflicts"
+        )
+
         return ds_extended
     
     def _load_era5_template(self, date: str) -> xr.Dataset:
@@ -461,12 +473,11 @@ class GraphCastFormatter:
             mcd_ds_regridded,
             num_timesteps=self.config.num_input_steps
         )
-        print(processed_ds.sizes)
-        exit()
         # Extend MCD time dimension (if needed)
         extend_ds = self._extend_time_dim(processed_ds, n_steps=self.config.num_output_steps)
 
-        
+        print("extend ds sizes:", extend_ds.sizes)
+        exit()
         # Align MCD time coordinates with ERA5
         #num_total_steps = self.config.num_input_steps + self.config.num_output_steps
         # mcd_ds = mcd_ds.assign_coords(time=era5_ds.time.values[:num_total_steps])
