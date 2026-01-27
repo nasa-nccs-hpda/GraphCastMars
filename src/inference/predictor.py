@@ -23,7 +23,8 @@ from graphcast import rollout
 from graphcast import xarray_jax
 from graphcast import xarray_tree
 
-from ..models.model_builder import ModelBuilder, NormalizationManager
+from ..models.model_builder import ModelBuilder
+#, NormalizationManager
 from ..models.checkpoint_utils import load_checkpoint, load_normalization_stats
 
 logger = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ class GraphCastPredictor:
         logger.info(f"Description: {self.ckpt.description}")
         
         # Load normalization statistics
-        self.normalizer = NormalizationManager(config.stats_dir)
+        #self.normalizer = NormalizationManager(config.stats_dir)
         
         # Build model builder with loaded stats
         self.model_builder = ModelBuilder(
