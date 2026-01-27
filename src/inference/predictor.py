@@ -70,7 +70,7 @@ class InferenceConfig:
         # Extract model config if present
         if 'model_config' in config_dict:
             model_config_dict = config_dict.pop('model_config')
-            config_dict['model_config'] = ModelConfig(**model_config_dict)
+            #config_dict['model_config'] = ModelConfig(**model_config_dict)
         
         return cls(**config_dict)
 
