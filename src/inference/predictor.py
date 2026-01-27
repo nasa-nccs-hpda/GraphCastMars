@@ -86,7 +86,7 @@ class GraphCastPredictor:
         # Load checkpoint (includes model_config and task_config)
         self.ckpt = self._load_checkpoint()
         self.params = self.ckpt.params
-        self.state = self.ckpt.state
+        self.state = {}
         self.model_config = self.ckpt.model_config
         self.task_config = self.ckpt.task_config
         
