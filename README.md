@@ -9,11 +9,12 @@ Process Mars Climate Database (MCD) data and run GraphCast predictions for Mars 
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.11+
 - CUDA 11.8+ (for GPU support)
 - Access to MCD data files
 - GraphCast checkpoint and normalization statistics
 - ~50GB free disk space
+```
 
 ### Step 1: Clone Repository
 
@@ -74,7 +75,7 @@ Place the following files in `checkpoints/graphcast/`:
 ```bash
 cd checkpoints/graphcast
 
-# Copy from existing location (example for NCCS)
+# Copy from existing location (example for DISCOVER)
 cp /discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/* .
 
 # Files needed:

@@ -28,6 +28,10 @@ else
     echo "✅ Added to PYTHONPATH (saved to .env)"
 fi
 
+# Add MCD library to Python path
+MCD_LIB_PATH="/discover/nobackup/projects/QEFM/data/shared/mcd_lib"
+export PYTHONPATH="${PYTHONPATH}:${MCD_LIB_PATH}"
+
 # Install other dependencies
 echo "📦 Installing dependencies..."
 pip install -r requirements.txt
