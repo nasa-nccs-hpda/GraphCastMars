@@ -236,7 +236,7 @@ class GraphCastPredictor:
         Returns:
             Path to saved predictions
         """
-        predictions = self.predict(input_data)
+        predictions = self.predict()
         output_path = self.save_predictions(predictions, output_file)
         return output_path
 
