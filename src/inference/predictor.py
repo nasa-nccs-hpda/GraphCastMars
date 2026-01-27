@@ -280,7 +280,7 @@ if __name__ == "__main__":
     # Paths (matching original script structure)
     checkpoint_path = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/params_GraphCast_small.npz")
     stats_dir = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast")
-    input_data = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/format_out")
+    input_data = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/format_out/graphcast_dataset_source-era5-mcd_date-2022-03-20-T00_res-1.0_levels-13_steps-7.nc")
     output_dir = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/pred_out")
     
     # Run inference
