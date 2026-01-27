@@ -449,6 +449,8 @@ class GraphCastFormatter:
         
         # Regrid MCD data
         mcd_ds_regridded = self.regridder.regrid_dataset(mcd_ds)
+        print(mcd_ds.sizes, mcd_ds_regridded.sizes, era5_ds.sizes)
+        exit()
         
         # Process variables
         processed_ds = self.processor.process_all_variables(
