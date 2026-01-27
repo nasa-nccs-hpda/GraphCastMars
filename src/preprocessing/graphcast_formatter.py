@@ -384,7 +384,7 @@ class GraphCastFormatter:
         """Load MCD files for a specific date"""
         tstamps = pd.date_range(
             start = date,
-            periods = self.config.num_input_steps + self.config.num_output_steps,
+            periods = self.config.num_input_steps, # + self.config.num_output_steps,
             freq = f"{self.config.time_step_hours}h"
         )
         
@@ -431,11 +431,11 @@ class GraphCastFormatter:
         era5_file = self.config.era5_sample_path / self.config.era5_filename_pattern.format(
             date=ymd, res=self.config.target_resolution
         )
-        
+        tsteps = self.config.num_input_steps
         if not era5_file.exists():
             raise FileNotFoundError(f"ERA5 template not found: {era5_file}")
         
-        return xr.open_dataset(era5_file)
+        return xr.open_dataset(era5_file).isel(time=slice(0, tsteps))
     
     def process_single_date(self, date: datetime) -> List[Path]:
         """Process data for a single date"""
@@ -447,13 +447,6 @@ class GraphCastFormatter:
         # Load ERA5 template
         era5_ds = self._load_era5_template(date)
         
-        # Extend MCD time dimension (if needed)
-        # mcd_ds = self._extend_time_dim(mcd_ds, n_steps=self.config.num_output_steps)
-        
-        # Align MCD time coordinates with ERA5
-        num_total_steps = self.config.num_input_steps + self.config.num_output_steps
-        # mcd_ds = mcd_ds.assign_coords(time=era5_ds.time.values[:num_total_steps])
-        
         # Regrid MCD data
         mcd_ds_regridded = self.regridder.regrid_dataset(mcd_ds)
         
@@ -461,29 +454,43 @@ class GraphCastFormatter:
         processed_ds = self.processor.process_all_variables(
             era5_ds, 
             mcd_ds_regridded,
-            num_timesteps=num_total_steps
+            num_timesteps=self.config.num_input_steps
         )
+        # Extend MCD time dimension (if needed)
+        extend_ds = self._extend_time_dim(processed_ds, n_steps=self.config.num_output_steps)
+
         
+        # Align MCD time coordinates with ERA5
+        #num_total_steps = self.config.num_input_steps + self.config.num_output_steps
+        # mcd_ds = mcd_ds.assign_coords(time=era5_ds.time.values[:num_total_steps])
         # Save output files (one per starting hour)
-        output_files = []
-        hours = [h for h in range(0, 24, self.config.time_step_hours)]
-        
-        for i, hour in enumerate(hours):
-            output_file = self.config.output_path / self.config.output_filename_pattern.format(
-                date=date.strftime('%Y-%m-%d'),
-                hour=hour,
-                res=self.config.target_resolution,
-                steps=self.config.num_input_steps + self.config.num_output_steps
-            )
+        # output_files = []
+        # hours = [h for h in range(0, 24, self.config.time_step_hours)]
+        num_total_steps = self.config.num_input_steps + self.config.num_output_steps
+        output_file = self.config.output_path / self.config.output_filename_pattern.format(
+            date=date.strftime('%Y-%m-%d'),
+            hour=0,
+            res=self.config.target_resolution,
+            steps=num_total_steps
+        )
+        extend_ds.to_netcdf(output_file, mode='w')
+        logger.info(f"Saved: {output_file}")
+        # for i, hour in enumerate(hours):
+        #     output_file = self.config.output_path / self.config.output_filename_pattern.format(
+        #         date=date.strftime('%Y-%m-%d'),
+        #         hour=hour,
+        #         res=self.config.target_resolution,
+        #         steps=num_total_steps
+        #     )
             
-            # Extract relevant time slice
-            time_slice = slice(i, i + self.config.num_input_steps + self.config.num_output_steps)
-            processed_ds.isel(time=time_slice).to_netcdf(output_file, mode='w')
+        #     # Extract relevant time slice
+        #     time_slice = slice(i, i + self.config.num_input_steps + self.config.num_output_steps)
+        #     processed_ds.isel(time=time_slice).to_netcdf(output_file, mode='w')
             
-            logger.info(f"Saved: {output_file}")
-            output_files.append(output_file)
+        #     logger.info(f"Saved: {output_file}")
+        #     output_files.append(output_file)
         
-        return output_files
+        return output_file
     
     def process_all_dates(self) -> Dict[str, List[Path]]:
         """Process all dates in the configuration"""
