@@ -353,11 +353,16 @@ class VariableProcessor:
         result_ds = era5_ds.copy()
         
         for var_name in era5_ds.data_vars:
+
             processed_var = self.apply_strategy(var_name, era5_ds, mcd_ds)
             # Replace first num_timesteps with processed data
             if 'time' in processed_var.dims:
+                print("Variable:", var_name)
+                print("size", processed_var.sizes)
                 result_ds[var_name].values[0, 0:num_timesteps, ...] = processed_var.values[0:num_timesteps, ...]
             else:
+                print("Variable:", var_name)
+                print("size", processed_var.sizes)
                 result_ds[var_name] = processed_var
         
         return result_ds
@@ -449,8 +454,6 @@ class GraphCastFormatter:
         
         # Regrid MCD data
         mcd_ds_regridded = self.regridder.regrid_dataset(mcd_ds)
-        print(mcd_ds.sizes, mcd_ds_regridded.sizes, era5_ds.sizes)
-        exit()
         
         # Process variables
         processed_ds = self.processor.process_all_variables(
@@ -458,6 +461,8 @@ class GraphCastFormatter:
             mcd_ds_regridded,
             num_timesteps=self.config.num_input_steps
         )
+        print(processed_ds.sizes)
+        exit()
         # Extend MCD time dimension (if needed)
         extend_ds = self._extend_time_dim(processed_ds, n_steps=self.config.num_output_steps)
 
