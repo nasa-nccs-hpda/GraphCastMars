@@ -42,8 +42,8 @@ class InferenceConfig:
     
     # Prediction settings
     num_steps: int = 4  # Number of forecast steps (eval_steps in original)
-    lead_time_hours: int = 6
     autoregressive: bool = True
+    target_lead_times: str = "6h"
     
     
     # Output options
@@ -128,9 +128,11 @@ class GraphCastPredictor:
             with open(file_path, "rb") as f:
                 ds = xr.load_dataset(f).compute()
             
+            target_lead_times = slice(self.config.target_lead_times,
+                                      f"{6*self.config.num_steps}h")
             inputs, targets, forcings = data_utils.extract_inputs_targets_forcings(
                 ds,
-                target_lead_times=self.target_lead_times,
+                target_lead_times=target_lead_times,
                 **dc.asdict(self.task_config)
             )
             
