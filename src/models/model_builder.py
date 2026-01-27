@@ -1,4 +1,4 @@
-# src/training/model_builder.py
+# src/models/model_builder.py
 
 import haiku as hk
 import xarray as xr
