@@ -92,7 +92,7 @@ class ModelBuilder:
         Returns:
             JIT-compiled predictor function
         """
-        forward_fn, _ = self.build_predictor()
+        forward_fn = self.build_predictor()
         
         # Helper to pass configs via partial (as in original)
         def with_configs(fn):
