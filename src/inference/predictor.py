@@ -278,10 +278,10 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     
     # Paths (matching original script structure)
-    checkpoint_path = Path("../../checkpoints/graphcast/params_GraphCast_small.npz")
-    stats_dir = Path("../../checkpoints/graphcast/")
-    input_data = Path("../../checkpoints/graphcast/source-era5-mcdv3_date-2022-01-01_res-1.0_levels-13_steps-04.nc")
-    output_dir = Path("/discover/nobackup/jli30/mars/data/graph_output/")
+    checkpoint_path = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/params_GraphCast_small.npz")
+    stats_dir = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast")
+    input_data = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/format_out")
+    output_dir = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/pred_out")
     
     # Run inference
     output_file = run_inference(
