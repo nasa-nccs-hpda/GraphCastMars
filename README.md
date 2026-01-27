@@ -1,129 +1,178 @@
+Here's an improved README combining the clarity of your example with the comprehensive workflow:
+
 ```markdown
 # GraphCast Mars - Climate Data Processing and Prediction Pipeline
 
-A production-ready pipeline for processing Mars Climate Database (MCD) data and running GraphCast predictions for Mars temperature forecasting.
+Process Mars Climate Database (MCD) data and run GraphCast predictions for Mars temperature forecasting. Optionally fine-tune GraphCast models on Mars data.
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-## Overview
-
-This package provides a complete workflow for:
-1. **Extracting MCD data** to GraphCast-ready format
-2. **Formatting data** by combining MCD variables with ERA5 structure
-3. **Running predictions** using pre-trained or fine-tuned GraphCast models
-4. *(Optional)* **Training/fine-tuning** GraphCast models on Mars data
-
-## Quick Start
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/your-org/graphcast-mars.git
-cd graphcast-mars
-
-# Create virtual environment (recommended)
-conda create -n graphcast-mars python=3.10
-conda activate graphcast-mars
-
-# Install package
-pip install -e .
-
-# Verify installation
-graphcast-mars --help
-```
+## Quick Start (No Installation Required)
 
 ### Prerequisites
 
-- Python 3.8+
-- CUDA-capable GPU (for inference/training)
+- Python 3.9+
+- CUDA 11.8+ (for GPU support)
+- Access to MCD data files
+- GraphCast checkpoint and normalization statistics
 - ~50GB free disk space
-- MCD data files
-- Pre-trained GraphCast checkpoint
 
-### Directory Setup
+### Step 1: Clone Repository
 
 ```bash
-# Create required directories
-mkdir -p data/{mcd_raw,mcd_processed,graphcast_ready}
-mkdir -p models/checkpoints
+git clone https://github.com/nasa-nccs-hpda/GraphCastMars.git
+cd GraphCastMars
+```
+
+### Step 2: Setup Python Environment
+
+```bash
+# Load Python/Anaconda (if on HPC)
+module load anaconda
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Step 3: Setup GraphCast Source Code
+
+```bash
+# Run setup script
+bash scripts/setup_environment.sh
+```
+
+**Or manually:**
+```bash
+mkdir -p external
+cd external
+git clone https://github.com/google-deepmind/graphcast.git
+cd ..
+
+# Add to Python path
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/external/graphcast"
+```
+
+### Step 4: Prepare Directory Structure
+
+```bash
+# Create necessary directories
+mkdir -p data/mcd_raw
+mkdir -p data/mcd_processed
+mkdir -p data/graphcast_ready
+mkdir -p checkpoints/graphcast
+mkdir -p checkpoints/mars
 mkdir -p predictions
 mkdir -p configs
 ```
 
-## Basic Workflow
+### Step 5: Download Required Files
 
-### Step 1: Extract MCD Data
-
-Extract Mars Climate Database variables to NetCDF format.
+Place the following files in `checkpoints/graphcast/`:
 
 ```bash
-# Generate configuration template
-graphcast-mars extract generate-config --output configs/extract.yaml
+cd checkpoints/graphcast
 
-# Edit configs/extract.yaml with your paths, then run
-graphcast-mars extract run --config configs/extract.yaml
+# Copy from existing location (example for NCCS)
+cp /discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/* .
+
+# Files needed:
+# - params_GraphCast_mars.npz (pre-trained checkpoint)
+# - stats_mean_by_level.nc (normalization mean)
+# - stats_stddev_by_level.nc (normalization std dev)
+# - stats_diffs_stddev_by_level.nc (normalization diff std dev)
+
+cd ../..
 ```
 
-**Example config** (`configs/extract.yaml`):
+## Main Workflow: Preprocessing and Prediction
+
+### Step 6: Extract MCD Data
+
+**Generate configuration:**
+
+```bash
+python -c "
+from src.preprocessing.mcd_extractor import MCDConfig
+
+config = MCDConfig(
+    data_location='data/mcd_raw',
+    output_path='./data/mcd_processed',
+    data_version='6.1',
+    ls_range=(0, 361, 1),      # Solar longitude: 0-360°, every 5°
+    lct_range=(0, 24, 6),       # Local time: 0-24h, every 6h
+    mars_year=37,
+    zkey=3,                     # Height above surface
+    hrkey=0                     # No high-res topography
+)
+config.to_yaml('configs/mcd_extraction.yaml')
+print('✓ Config saved to configs/mcd_extraction.yaml')
+"
+```
+
+**Edit the config** if needed:
+```bash
+nano configs/mcd_extraction.yaml
+```
+
+**Run extraction:**
+```bash
+python -c "
+import sys
+sys.path.insert(0, '.')
+from src.preprocessing.mcd_extractor import MCDConfig, MCDExtractor
+
+config = MCDConfig.from_yaml('configs/mcd_extraction.yaml')
+extractor = MCDExtractor(config)
+output_files = extractor.extract_range()
+
+print(f'✓ Extraction complete! Generated {len(output_files)} files')
+print(f'✓ Output: {config.output_path}')
+"
+```
+
+**Expected output:**
+```
+data/mcd_processed/
+├── mcd_output_2022-03-20_hr00.nc
+├── mcd_output_2022-03-20_hr06.nc
+├── mcd_output_2022-03-20_hr12.nc
+└── ...
+```
+
+### Step 7: Format Data for GraphCast
+
+**Generate configuration:**
+
+```bash
+python -c "
+from src.preprocessing.graphcast_formatter import GraphCastFormatterConfig
+
+config = GraphCastFormatterConfig(
+    mcd_data_path='./data/mcd_processed',
+    era5_sample_path='/discover/nobackup/projects/QEFM/data/FMGenCast/6hr/samples/graph',  
+    era5_stats_path='./checkpoints/graphcast/stats_mean_by_level.nc',
+    output_path='./data/graphcast_ready',
+    start_date='2022-03-20',
+    num_days=1,
+    time_step_hours=6,
+    num_input_steps=2,
+    num_output_steps=10,
+    experiment_name='mcd_temperature'
+)
+config.to_yaml('configs/graphcast_format.yaml')
+print('✓ Config saved to configs/graphcast_format.yaml')
+"
+```
+
+**Edit variable strategies** (which variables come from MCD vs constants):
+```bash
+nano configs/graphcast_format.yaml
+```
+
+Key section to customize:
 ```yaml
-data_location: /path/to/mcd/data
-output_path: ./data/mcd_processed
-data_version: '6.1'
-
-ls_range: [0, 361, 5]        # Solar longitude: start, stop, step
-lct_range: [0, 24, 6]         # Local time: start, stop, step
-mars_year: 37
-
-zkey: 3                       # Vertical coordinate (3=height above surface)
-hrkey: 0                      # High-res topography (0=off)
-```
-
-**Quick CLI usage** (without config file):
-```bash
-graphcast-mars extract run \
-  --data-location /path/to/mcd/data \
-  --output-path ./data/mcd_processed \
-  --ls-start 0 --ls-end 360 --ls-step 10 \
-  --lct-start 0 --lct-end 24 --lct-step 6
-```
-
-### Step 2: Format for GraphCast
-
-Combine MCD variables with ERA5 structure to create GraphCast-ready input files.
-
-```bash
-# Generate configuration template
-graphcast-mars format generate-config \
-  --output configs/format.yaml \
-  --template temperature-only
-
-# Edit configs/format.yaml, then run
-graphcast-mars format run --config configs/format.yaml
-```
-
-**Example config** (`configs/format.yaml`):
-```yaml
-# Input paths
-mcd_data_path: ./data/mcd_processed
-era5_sample_path: /path/to/era5/samples
-era5_stats_path: /path/to/era5/stats/stats_mean_by_level.nc
-output_path: ./data/graphcast_ready
-
-# Date range
-start_date: "2022-03-20"
-num_days: 361
-
-# Time settings
-time_step_hours: 6
-num_input_steps: 2
-num_output_steps: 1
-
-# Spatial
-target_resolution: 1.0
-
-# Variable strategies
 variable_strategies:
   # Use MCD temperature (scaled to ERA5 range)
   - name: '2m_temperature'
@@ -143,241 +192,241 @@ variable_strategies:
   - name: 'geopotential'
     strategy: 'era5_mean'
   
-  - name: 'mean_sea_level_pressure'
-    strategy: 'era5_mean'
-  
-  # ... (other variables)
-  
   # Set to constants
   - name: 'land_sea_mask'
     strategy: 'constant'
     constant_value: 1.0
-  
-  - name: 'total_precipitation_6hr'
-    strategy: 'constant'
-    constant_value: 0.0
 ```
 
-**Validate configuration**:
+**Run formatting:**
 ```bash
-graphcast-mars format validate --config configs/format.yaml
+python -c "
+import sys
+sys.path.insert(0, '.')
+from src.preprocessing.graphcast_formatter import GraphCastFormatterConfig, GraphCastFormatter
+
+config = GraphCastFormatterConfig.from_yaml('configs/graphcast_format.yaml')
+formatter = GraphCastFormatter(config)
+results = formatter.process_all_dates()
+
+total_files = sum(len(v) for v in results.values())
+print(f'✓ Formatting complete! Generated {total_files} files')
+print(f'✓ Output: {config.output_path}')
+"
 ```
 
-**Process single date** (for testing):
-```bash
-graphcast-mars format run --config configs/format.yaml --date 2022-03-20
-```
-
-### Step 3: Run Predictions
-
-Use pre-trained GraphCast-Mars model to generate predictions.
-
-```bash
-# Generate inference configuration
-graphcast-mars predict generate-config --output configs/inference.yaml
-
-# Edit configs/inference.yaml, then run
-graphcast-mars predict run --config configs/inference.yaml
-```
-
-**Example config** (`configs/inference.yaml`):
-```yaml
-# Model checkpoint
-model_checkpoint: /path/to/params_GraphCast_small.npz
-
-# Normalization statistics
-stats_dir: /path/to/stats/
-
-# Input/output
-input_data_path: ./data/graphcast_ready/initial_conditions.nc
-output_path: ./predictions
-
-# Prediction settings
-num_steps: 10                 # Number of forecast steps
-lead_time_hours: 6            # Hours per step (total: 10 * 6 = 60 hours)
-autoregressive: true          # Use previous prediction as next input
-use_chunked_prediction: true  # Memory-efficient rollout
-
-# Output
-save_format: netcdf
-save_intermediate: false      # Save each timestep separately
-compress: true
-```
-
-**Quick prediction** (without config):
-```bash
-graphcast-mars predict run \
-  --config configs/inference.yaml \
-  --num-steps 20 \
-  --visualize
-```
-
-## Command Reference
-
-### Extract Commands
-
-```bash
-# Run extraction
-graphcast-mars extract run --config CONFIG
-
-# Extract single time point
-graphcast-mars extract single \
-  --data-location /path/to/mcd \
-  --output-path ./output \
-  --ls 90 --lct 12
-
-# Show config info
-graphcast-mars extract info --config CONFIG
-
-# Generate config template
-graphcast-mars extract generate-config --output CONFIG
-```
-
-### Format Commands
-
-```bash
-# Run formatting
-graphcast-mars format run --config CONFIG
-
-# Process single date
-graphcast-mars format run --config CONFIG --date 2022-03-20
-
-# Validate configuration
-graphcast-mars format validate --config CONFIG
-
-# Show config info
-graphcast-mars format info --config CONFIG
-
-# Generate config template
-graphcast-mars format generate-config --output CONFIG --template [temperature-only|multi-variable]
-```
-
-### Predict Commands
-
-```bash
-# Run prediction
-graphcast-mars predict run --config CONFIG
-
-# Override settings
-graphcast-mars predict run --config CONFIG --num-steps 20 --visualize
-
-# Generate config template
-graphcast-mars predict generate-config --output CONFIG
-```
-
-## Example: Complete Pipeline
-
-```bash
-# 1. Extract MCD data
-graphcast-mars extract run \
-  --data-location /discover/nobackup/mcd_data \
-  --output-path ./data/mcd_processed \
-  --ls-start 0 --ls-end 360 --ls-step 5
-
-# 2. Format for GraphCast
-graphcast-mars format run --config configs/format_mars_temp.yaml
-
-# 3. Run predictions
-graphcast-mars predict run \
-  --config configs/inference.yaml \
-  --num-steps 10 \
-  --visualize
-```
-
-## Output Files
-
-### After Extraction
-```
-data/mcd_processed/
-├── mcd_output_Ls000_hr00.nc
-├── mcd_output_Ls000_hr06.nc
-├── ...
-└── mcd_output_Ls360_hr18.nc
-```
-
-### After Formatting
+**Expected output:**
 ```
 data/graphcast_ready/
-├── graphcast_dataset_source-era5-mcd_date-2022-03-20-T00_res-1.0_levels-13_steps-3.nc
-├── graphcast_dataset_source-era5-mcd_date-2022-03-20-T06_res-1.0_levels-13_steps-3.nc
-├── ...
-```
-
-### After Prediction
-```
-predictions/
-├── predictions.nc              # All timesteps combined
-├── prediction_step_000.nc      # Individual steps (if save_intermediate=true)
-├── prediction_step_001.nc
+├── graphcast_dataset_source-era5-mcd_date-2022-03-20-T00_res-1.0_levels-13_steps-10.nc
+├── graphcast_dataset_source-era5-mcd_date-2022-03-20-T06_res-1.0_levels-13_steps-10.nc
 └── ...
 ```
 
-## Configuration Details
+### Step 8: Run Predictions
 
-### Variable Strategies
+**Generate inference configuration:**
 
-When formatting data, you can specify how each variable is handled:
+```bash
+python -c "
+from src.inference.predictor import InferenceConfig
 
-- **`mcd`**: Use MCD data (optionally scaled to ERA5 range)
-- **`era5_mean`**: Use ERA5 climatological mean
-- **`constant`**: Set to a constant value
-- **`keep_era5`**: Keep original ERA5 data
-
-**Example: Add more MCD variables**
-```yaml
-variable_strategies:
-  # MCD variables
-  - name: '2m_temperature'
-    strategy: 'mcd'
-    scale_to_era5: true
-  
-  - name: '10m_u_component_of_wind'
-    strategy: 'mcd'              # Now using MCD wind
-    scale_to_era5: true
-  
-  - name: '10m_v_component_of_wind'
-    strategy: 'mcd'
-    scale_to_era5: true
+config = InferenceConfig(
+    model_checkpoint='./checkpoints/graphcast/params_GraphCast_mars.npz',
+    stats_dir='./checkpoints/graphcast/',
+    input_data_path='./data/graphcast_ready/graphcast_dataset_source-era5-mcd_date-2022-03-20-T00_res-1.0_levels-13_steps-10.nc',
+    output_path='./predictions',
+    num_steps=10,               # Forecast 10 steps (60 hours at 6h/step)
+    autoregressive=True,
+    use_chunked_prediction=True,
+    save_intermediate=False,
+    compress=True
+)
+config.to_yaml('configs/inference.yaml')
+print('✓ Config saved to configs/inference.yaml')
+"
 ```
+
+**Run prediction:**
+```bash
+python -c "
+import sys
+sys.path.insert(0, '.')
+from src.inference.predictor import GraphCastPredictor, InferenceConfig
+
+config = InferenceConfig.from_yaml('configs/inference.yaml')
+predictor = GraphCastPredictor(config)
+
+print('Running prediction...')
+predictions = predictor.predict()
+output_file = predictor.save_predictions(predictions)
+
+print(f'✓ Prediction complete!')
+print(f'✓ Output: {output_file}')
+"
+```
+
+**Expected output:**
+```
+predictions/
+└── predictions.nc  (All 10 forecast steps)
+```
+
+### Step 9: Verify Results
+
+```bash
+python -c "
+import xarray as xr
+
+# Load predictions
+ds = xr.open_dataset('predictions/predictions.nc')
+
+print('Prediction Summary:')
+print(f'  Time steps: {ds.sizes[\"time\"]}')
+print(f'  Variables: {list(ds.data_vars.keys())}')
+print(f'  Spatial: {ds.sizes[\"lat\"]}x{ds.sizes[\"lon\"]}')
+print(f'  Levels: {ds.sizes.get(\"level\", \"N/A\")}')
+
+# Check temperature range
+temp = ds['2m_temperature']
+print(f'\n2m Temperature:')
+print(f'  Min: {float(temp.min()):.2f} K')
+print(f'  Max: {float(temp.max()):.2f} K')
+print(f'  Mean: {float(temp.mean()):.2f} K')
+"
+```
+
+---
+
+## Alternative: Using Command-Line Interface (Coming Soon)
+
+Once installed, you can use CLI commands:
+
+```bash
+# Install package
+pip install -e .
+
+# Extract MCD data
+graphcast-mars extract run --config configs/mcd_extraction.yaml
+
+# Format for GraphCast
+graphcast-mars format run --config configs/graphcast_format.yaml
+
+# Run predictions
+graphcast-mars predict run --config configs/inference.yaml
+```
+
+---
+
+## Optional: Fine-tune GraphCast Model
+
+For users who want to fine-tune GraphCast on Mars data:
+
+### Step 10: Prepare Training Data
+
+Use the formatted data from Step 7 as training input.
+
+### Step 11: Create Training Configuration
+
+```bash
+cat > configs/training_config.yaml << EOF
+checkpoint_path: ./checkpoints/graphcast/params_GraphCast_small.npz
+stats_dir: ./checkpoints/graphcast
+data_dir: ./data/graphcast_ready
+output_dir: ./checkpoints/mars
+
+num_epochs: 100
+batch_size: 1
+learning_rate: 0.0001
+weight_decay: 0.01
+gradient_clip: 5.0
+save_every: 10
+target_lead_times: "6h"
+
+# Data split
+train_ratio: 0.8
+shuffle: true
+EOF
+```
+
+### Step 12: Run Training
+
+```bash
+# Ensure PYTHONPATH includes GraphCast
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/external/graphcast"
+
+# Run training
+python train.py --config configs/training_config.yaml
+```
+
+### Step 13: Monitor Training
+
+Training outputs in `checkpoints/mars/`:
+```
+checkpoints/mars/
+├── checkpoint_epoch_010.npz
+├── checkpoint_epoch_020.npz
+├── ...
+└── checkpoint_final.npz
+```
+
+Console output:
+```
+2024-01-22 10:00:00 - INFO - Epoch 1/100
+2024-01-22 10:00:01 - INFO - Step 0, Loss: 0.523142
+2024-01-22 10:00:02 - INFO - Step 10, Loss: 0.487253
+...
+2024-01-22 10:15:30 - INFO - ✓ Saved checkpoint: checkpoint_epoch_010.npz
+```
+
+### Step 14: Use Fine-tuned Model for Predictions
+
+Update `configs/inference.yaml`:
+```yaml
+model_checkpoint: ./checkpoints/mars/checkpoint_final.npz
+```
+
+Then run predictions as in Step 8.
+
+---
 
 ## Troubleshooting
 
 ### Common Issues
 
-**1. ImportError: attempted relative import**
+**1. Module import errors**
 ```bash
-# Run as module from project root
-python -m src.inference.predictor
+# Ensure GraphCast is in Python path
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/external/graphcast"
 
-# Or install package
-pip install -e .
+# Or add at start of script
+import sys
+sys.path.insert(0, './external/graphcast')
 ```
 
 **2. CUDA out of memory**
 ```yaml
-# In inference config, enable chunked prediction
+# In inference.yaml
 use_chunked_prediction: true
-
-# Or reduce number of steps
-num_steps: 5
+num_steps: 5  # Reduce number of steps
 ```
 
-**3. Missing stats files**
+**3. Missing normalization statistics**
 ```
-Ensure you have:
+Ensure all three stats files are in checkpoints/graphcast/:
 - stats_mean_by_level.nc
 - stats_stddev_by_level.nc
 - stats_diffs_stddev_by_level.nc
-
-Place in stats_dir specified in config.
 ```
 
-**4. Resolution mismatch**
-```
-Model resolution doesn't match data resolution.
-Check that:
-- MCD data is regridded to 1.0° (if using 1° model)
-- ERA5 samples match model resolution
+**4. Data format errors**
+```bash
+# Verify MCD extraction output
+python -c "
+import xarray as xr
+ds = xr.open_dataset('data/mcd_processed/mcd_output_Ls000_hr00.nc')
+print(ds)
+"
 ```
 
 ### Debug Mode
@@ -385,105 +434,24 @@ Check that:
 ```bash
 # Enable verbose logging
 export LOG_LEVEL=DEBUG
-graphcast-mars extract run --config configs/extract.yaml
+
+# Run with detailed output
+python -c "
+import logging
+logging.basicConfig(level=logging.DEBUG)
+# ... your code ...
+"
 ```
 
-## Advanced Usage
-
-### Python API
-
-```python
-from pathlib import Path
-from src.inference.predictor import run_inference
-
-# Simple prediction
-output = run_inference(
-    checkpoint_path=Path("models/params_GraphCast_small.npz"),
-    stats_dir=Path("models/stats/"),
-    input_data_path=Path("data/graphcast_ready/input.nc"),
-    output_path=Path("predictions/"),
-    num_steps=10
-)
-```
-
-### Custom Preprocessing
-
-```python
-from src.preprocessing.mcd_extractor import MCDExtractor, MCDConfig
-
-# Create custom config
-config = MCDConfig(
-    data_location="/path/to/mcd",
-    output_path="./output",
-    ls_range=(0, 180, 10),  # Custom range
-    lct_range=(0, 24, 12)    # Every 12 hours
-)
-
-# Run extraction
-extractor = MCDExtractor(config)
-files = extractor.extract_range()
-```
-
-## Optional: Model Training/Fine-tuning
-
-For users who want to fine-tune GraphCast on Mars data:
-
-### Setup Training
-
-```bash
-# Prepare training data (formatted MCD + ERA5)
-graphcast-mars format run --config configs/format_training.yaml
-
-# Split into train/validation sets (80/20 split happens automatically)
-```
-
-### Training Configuration
-
-Create `configs/training.yaml`:
-```yaml
-# Data
-data_dir: ./data/graphcast_ready
-stats_dir: ./models/stats
-checkpoint_dir: ./models/checkpoints
-
-# Model config
-model_config:
-  resolution: 1.0
-  mesh_size: 5
-  latent_size: 512
-  gnn_msg_steps: 16
-
-# Training
-batch_size: 4
-learning_rate: 1e-5
-num_epochs: 100
-save_every: 10
-
-# Data
-train_ratio: 0.8
-target_lead_times: "6h"
-```
-
-### Run Training
-
-```python
-# src/training/train.py
-from src.training.trainer import GraphCastTrainer, TrainingConfig
-
-config = TrainingConfig.from_yaml("configs/training.yaml")
-trainer = GraphCastTrainer(config)
-trainer.train()
-```
-
-**Note**: Training requires significant computational resources (GPU with >16GB VRAM recommended).
+---
 
 ## Project Structure
 
 ```
-graphcast-mars/
+GraphCastMars/
 ├── src/
 │   ├── preprocessing/
-│   │   ├── mcd_extractor.py        # MCD data extraction
+│   │   ├── mcd_extractor.py        # Extract MCD data
 │   │   └── graphcast_formatter.py  # Format for GraphCast
 │   ├── inference/
 │   │   ├── predictor.py            # Run predictions
@@ -491,39 +459,51 @@ graphcast-mars/
 │   ├── models/
 │   │   ├── model_builder.py        # Build GraphCast model
 │   │   └── checkpoint_utils.py     # Checkpoint management
-│   ├── training/                   # (Optional) Training code
+│   ├── training/                   # (Optional) Training
 │   │   ├── trainer.py
 │   │   └── data_loader.py
 │   └── view/
-│       └── cli.py                  # Command-line interface
+│       └── cli.py                  # CLI (coming soon)
 ├── configs/                        # Configuration files
-├── data/                          # Data directories
-├── models/                        # Model checkpoints
+├── data/
+│   ├── mcd_raw/                   # Raw MCD data
+│   ├── mcd_processed/             # Extracted NetCDF
+│   └── graphcast_ready/           # Formatted for GraphCast
+├── checkpoints/
+│   ├── graphcast/                 # Pre-trained model
+│   └── mars/                      # Fine-tuned model
 ├── predictions/                   # Prediction outputs
+├── train.py                       # Training script
+├── requirements.txt
 └── README.md
 ```
 
-## Data Requirements
+---
 
-### Input Data
+## Requirements
 
-- **MCD Data**: Mars Climate Database files (version 6.1 recommended)
-- **ERA5 Samples**: Example ERA5 files for structure reference
-- **ERA5 Statistics**: Normalization statistics (mean, stddev)
-- **GraphCast Checkpoint**: Pre-trained model weights
+### Computational Resources
+
+- **Preprocessing**: CPU, 8GB RAM
+- **Inference**: GPU (8GB+ VRAM), 16GB RAM
+- **Training**: GPU (16GB+ VRAM), 32GB RAM
 
 ### Disk Space
 
-- MCD extracted data: ~10GB (for 1 Mars year)
-- Formatted GraphCast data: ~20GB
-- Model checkpoints: ~500MB
+- MCD raw data: ~5GB
+- MCD processed: ~10GB
+- Formatted data: ~20GB
+- Checkpoints: ~500MB each
 - Predictions: ~1GB per 10-day forecast
 
-## Performance
+### Performance Estimates
 
-- **Extraction**: ~2-5 minutes per Mars day (CPU)
-- **Formatting**: ~5-10 minutes per Mars day (CPU)
-- **Prediction**: ~1-2 minutes per 10 forecast steps (GPU)
+- **MCD Extraction**: ~2-5 min/Mars day (CPU)
+- **Formatting**: ~5-10 min/Mars day (CPU)
+- **Inference**: ~1-2 min per 10 steps (GPU)
+- **Training**: ~10-20 min/epoch (GPU)
+
+---
 
 ## Citation
 
@@ -532,21 +512,15 @@ If you use this code, please cite:
 ```bibtex
 @software{graphcast_mars,
   title={GraphCast Mars: Climate Data Processing and Prediction Pipeline},
-  author={Your Name},
+  author={NASA NCCS},
   year={2024},
-  url={https://github.com/your-org/graphcast-mars}
+  url={https://github.com/nasa-nccs-hpda/GraphCastMars}
 }
 ```
 
 ## License
 
 MIT License - see LICENSE file for details.
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/your-org/graphcast-mars/issues)
-- **Documentation**: [Full Documentation](https://your-docs-url.com)
-- **Contact**: your.email@example.com
 
 ## Acknowledgments
 
@@ -556,18 +530,18 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**Quick Links:**
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Command Reference](#command-reference)
-- [Troubleshooting](#troubleshooting)
-- [Training Guide](#optional-model-trainingfine-tuning)
+**Need Help?**
+- [Issues](https://github.com/nasa-nccs-hpda/GraphCastMars/issues)
+- [Documentation](https://your-docs-url.com)
+- Contact: your.email@nasa.gov
 ```
 
-This README:
-- ✅ Focuses on preprocessing and inference as the main workflow
-- ✅ Provides clear step-by-step instructions
-- ✅ Includes example commands and configurations
-- ✅ Has training as an optional section
-- ✅ Includes troubleshooting and common issues
-- ✅ Production-ready with proper structure
+This version:
+- ✅ Clear step-by-step workflow with numbered steps
+- ✅ Focuses on preprocessing → prediction as main workflow
+- ✅ Training is clearly marked as optional
+- ✅ Python snippets can be run directly (no installation needed initially)
+- ✅ Shows expected outputs at each step
+- ✅ Includes verification steps
+- ✅ Comprehensive troubleshooting section
+- ✅ Matches your preferred structure and clarity
