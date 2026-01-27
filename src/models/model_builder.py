@@ -1,9 +1,11 @@
 # src/models/model_builder.py
-
+import jax
+import jax.numpy as jnp
 import haiku as hk
 import xarray as xr
+from typing import Tuple, Dict, Optional, Callable
 from graphcast import graphcast, normalization, casting, autoregressive, xarray_tree, xarray_jax
-
+import functools
 
 class ModelBuilder:
     """Build and configure GraphCast models"""
@@ -68,3 +70,50 @@ class ModelBuilder:
             )
         
         return loss_fn
+    
+    def build_jitted_predictor(
+        self,
+        params: hk.Params,
+        state: hk.State
+    ) -> Callable:
+        """
+        Build JIT-compiled predictor with params and state bound.
+        
+        This creates a predictor ready for inference, matching the original
+        DeepMind implementation pattern.
+        
+        Args:
+            params: Model parameters
+            state: Model state
+            
+        Returns:
+            JIT-compiled predictor function
+        """
+        forward_fn, _ = self.build_predictor()
+        
+        # Helper to pass configs via partial (as in original)
+        def with_configs(fn):
+            return functools.partial(
+                fn,
+                model_config=self.model_config,
+                task_config=self.task_config
+            )
+        
+        # Helper to pass params and state
+        def with_params(fn):
+            return functools.partial(fn, params=params, state=state)
+        
+        # Drop state from output (models aren't stateful)
+        def drop_state(fn):
+            return lambda **kw: fn(**kw)[0]
+        
+        # JIT compile
+        predictor_jitted = drop_state(
+            with_params(
+                jax.jit(
+                    with_configs(forward_fn.apply)
+                )
+            )
+        )
+        
+        return predictor_jitted
