@@ -6,7 +6,10 @@ import xarray as xr
 from typing import Tuple, Dict, Optional, Callable
 from graphcast import graphcast, normalization, casting, autoregressive, xarray_tree, xarray_jax
 import functools
+from pathlib import Path
+import logging
 
+logger = logging.getLogger(__name__)
 class ModelBuilder:
     """Build and configure GraphCast models"""
     
@@ -117,3 +120,56 @@ class ModelBuilder:
         )
         
         return predictor_jitted
+    
+class NormalizationManager:
+    """Manage normalization/denormalization (shared between training and inference)"""
+    
+    def __init__(self, stats_dir: Path):
+        self.stats_dir = Path(stats_dir)
+        self.stats = self._load_stats()
+    
+    def _load_stats(self) -> Dict[str, xr.Dataset]:
+        """Load normalization statistics"""
+        stats = {}
+        
+        stats_files = {
+            'mean': 'stats_mean_by_level.nc',
+            'stddev': 'stats_stddev_by_level.nc',
+            'diffs_stddev': 'stats_diffs_stddev_by_level.nc'
+        }
+        
+        for key, filename in stats_files.items():
+            path = self.stats_dir / filename
+            if not path.exists():
+                logger.warning(f"Stats file not found: {path}")
+                continue
+            stats[key] = xr.open_dataset(path)
+            logger.info(f"Loaded {key} statistics from {path}")
+        
+        return stats
+    
+    def normalize(self, data: xr.Dataset) -> xr.Dataset:
+        """Normalize data using loaded statistics"""
+        if 'mean' not in self.stats or 'stddev' not in self.stats:
+            logger.warning("Missing normalization stats, returning unnormalized data")
+            return data
+        
+        normalized = normalization.normalize(
+            data,
+            scales=self.stats['stddev'],
+            locations=self.stats['mean']
+        )
+        return normalized
+    
+    def denormalize(self, data: xr.Dataset) -> xr.Dataset:
+        """Denormalize data to physical units"""
+        if 'mean' not in self.stats or 'stddev' not in self.stats:
+            logger.warning("Missing normalization stats, returning data as-is")
+            return data
+        
+        denormalized = normalization.denormalize(
+            data,
+            scales=self.stats['stddev'],
+            locations=self.stats['mean']
+        )
+        return denormalized
