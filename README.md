@@ -1,6 +1,3 @@
-Here's an improved README combining the clarity of your example with the comprehensive workflow:
-
-```markdown
 # GraphCast Mars - Climate Data Processing and Prediction Pipeline
 
 Process Mars Climate Database (MCD) data and run GraphCast predictions for Mars temperature forecasting. Optionally fine-tune GraphCast models on Mars data.
@@ -14,7 +11,7 @@ Process Mars Climate Database (MCD) data and run GraphCast predictions for Mars 
 - Access to MCD data files
 - GraphCast checkpoint and normalization statistics
 - ~50GB free disk space
-```
+
 
 ### Step 1: Clone Repository
 
