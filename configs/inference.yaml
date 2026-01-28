@@ -1,14 +1,14 @@
 # configs/inference.yaml
 
 # Model checkpoint
-model_checkpoint: ./checkpoint/graphcast/params_GraphCast_mars.npz
+model_checkpoint: ./checkpoints/graphcast/params_GraphCast_mars.npz
 
 # Normalization statistics
 stats_dir: ./checkpoints/graphcast
 
 # Input data
 input_data_path: ./data/graphcast_ready/  # Can be a file or directory
-output_path: ./predictions
+output_path: ./data/predictions
 
 # Prediction settings
 num_steps: 10                    # Number of forecast steps
