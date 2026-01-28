@@ -5,10 +5,6 @@ model_checkpoint: ./checkpoint/graphcast/params_GraphCast_mars.npz
 
 # Normalization statistics
 stats_dir: ./checkpoints/graphcast
-stats_files:
-  mean: stats_mean_by_level.nc
-  stddev: stats_stddev_by_level.nc
-  diffs_stddev: stats_diffs_stddev_by_level.nc
 
 # Input data
 input_data_path: ./data/graphcast_ready/  # Can be a file or directory
@@ -17,9 +13,9 @@ output_path: ./predictions
 # Prediction settings
 num_steps: 10                    # Number of forecast steps
 target_lead_times: 6h               # Hours per step
-autoregressive: true             # Use previous prediction as next input
+autoregressive: True             # Use previous prediction as next input
 
 # Output options
 save_format: netcdf              # netcdf, zarr
-save_intermediate: true          # Save each timestep
-compress: true
+save_intermediate: False          # Save each timestep
+compress: True
