@@ -11,7 +11,7 @@ input_data_path: ./data/graphcast_ready/  # Can be a file or directory
 output_path: ./data/predictions
 
 # Prediction settings
-num_steps: 10                    # Number of forecast steps
+num_steps: 4                    # Number of forecast steps
 target_lead_times: 6h               # Hours per step
 autoregressive: True             # Use previous prediction as next input
 
