@@ -181,26 +181,14 @@ data/graphcast_ready/
 
 **Run prediction:**
 ```bash
-python -c "
-import sys
-sys.path.insert(0, '.')
-from src.inference.predictor import GraphCastPredictor, InferenceConfig
-
-config = InferenceConfig.from_yaml('configs/inference.yaml')
-predictor = GraphCastPredictor(config)
-
-print('Running prediction...')
-output_file = predictor.predict_and_save()
-
-print(f'√ Prediction complete!')
-print(f'√ Output: {output_file}')
+sbatch --partition=gpu_a100 --constraint=rome --ntasks=10 --gres=gpu:1 --mem-per-gpu=100G -t 1:00:00 -J g-mars --wrap="module load singularity; singularity exec --nv -B $NOBACKUP,/css,/gpfsm/dmd/css,/nfs3m,/gpfsm /discover/nobackup/projects/QEFM/containers/graphcast-mars-sandbox python -m src.inference.predictor --config configs/inference.yaml"
 "
 ```
 
 **Expected output:**
 ```
 predictions/
-└── predictions.nc  (All 10 forecast steps)
+└── graphcast_dataset_source-era5-mcd_date-2022-03-20-T00_res-1.0_levels-13_steps-10_prediction.nc  (All forecast steps)
 ```
 
 ### Step 9: Verify Results
