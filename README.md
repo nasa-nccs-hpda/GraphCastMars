@@ -93,9 +93,10 @@ python -c "
 from src.preprocessing.mcd_extractor import MCDConfig
 
 config = MCDConfig(
+    data_location='/discover/nobackup/projects/QEFM/data/shared/MCD_6.1/data',
     output_path='./data/mcd_processed',
     data_version='6.1',
-    ls_range=(0, 5, 1),      # Solar longitude: 0-360°, every 5°
+    ls_range=(0, 5, 1),         # Solar longitude: 0-360°, every 5°
     lct_range=(0, 24, 6),       # Local time: 0-24h, every 6h
     zkey=3,                     # Height above surface
     hrkey=0                     # No high-res topography
