@@ -182,7 +182,6 @@ data/graphcast_ready/
 **Run prediction:**
 ```bash
 sbatch --partition=gpu_a100 --constraint=rome --ntasks=10 --gres=gpu:1 --mem-per-gpu=100G -t 1:00:00 -J g-mars --wrap="module load singularity; singularity exec --nv -B $NOBACKUP,/css,/gpfsm/dmd/css,/nfs3m,/gpfsm /discover/nobackup/projects/QEFM/containers/graphcast-mars-sandbox python -m src.inference.predictor --config configs/inference.yaml"
-"
 ```
 
 **Expected output:**
