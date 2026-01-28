@@ -2,7 +2,7 @@
 
 data_location: /discover/nobackup/projects/QEFM/data/shared/MCD_6.1/data/
 data_version: '6.1'
-output_path: /discover/nobackup/jli30/GraphCastMars/data/mcd_processed/
+output_path: ./data/mcd_processed/
 
 
 # Time ranges
