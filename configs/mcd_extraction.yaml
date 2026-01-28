@@ -19,7 +19,7 @@ hrkey: 0                        # High-resolution topography (0 = off, 1 = on)
 # Time Range Settings
 # ============================================================
 # Solar longitude (Ls) range: [start, stop, step]
-ls_range: [0, 361, 5]           # 0-360°, every 5° (72 points)
+ls_range: [0, 3, 1]           # 0-360°, every 5° (72 points)
 
 # Local time range: [start, stop, step]
 lct_range: [0, 24, 6]           # 0-24h, every 6h (4 points)
