@@ -485,7 +485,7 @@ class GraphCastFormatter:
         num_total_steps = self.config.num_input_steps + self.config.num_output_steps
         output_file = self.config.output_path / self.config.output_filename_pattern.format(
             date=date.strftime('%Y-%m-%d'),
-            hour=0,
+            hour=date.hour,
             res=self.config.target_resolution,
             steps=num_total_steps
         )
