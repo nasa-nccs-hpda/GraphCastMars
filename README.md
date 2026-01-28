@@ -61,7 +61,7 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)/external/graphcast"
 # Create necessary directories
 mkdir -p data/mcd_processed
 mkdir -p data/graphcast_ready
-mkdir -p checkpoints/mars
+mkdir -p checkpoints/graphcast
 mkdir -p predictions
 ```
 
