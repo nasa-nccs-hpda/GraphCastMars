@@ -22,14 +22,14 @@ fi
 #     echo "${PROJECT_ROOT}/external/graphcast" > "${SITE_PACKAGES}/graphcast_dev.pth"
 #     echo "✅ Added GraphCast to Python path: ${SITE_PACKAGES}/graphcast_dev.pth"
 # else
-echo "⚠️  Could not find site-packages, using PYTHONPATH instead"
+#ß echo "⚠️  Could not find site-packages, using PYTHONPATH instead"
 export PYTHONPATH="${PYTHONPATH}:${PWD}/external/graphcast"
 echo "export PYTHONPATH=\"\${PYTHONPATH}:${PWD}/external/graphcast\"" >> .env
 echo "✅ Added to PYTHONPATH (saved to .env)"
 # fi
 
 # Add MCD library to Python path
-PPROJECT_ROOT=${PWD}
+PROJECT_ROOT=${PWD}
 cp /discover/nobackup/projects/QEFM/data/shared/mcd_lib/*.so ${PROJECT_ROOT}/src/preprocessing.
 MCD_LIB_PATH="${PPROJECT_ROOT}/src/preprocessing/mcd_lib"
 export PYTHONPATH="${PYTHONPATH}:${MCD_LIB_PATH}"
