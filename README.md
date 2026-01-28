@@ -27,7 +27,7 @@ cd GraphCastMars
 module load anaconda
 ```
 
-**Optioanl : Create virtual environment**
+**For Non-DISCOVER system: Create virtual environment**
 ```bash 
 # Recommended when not using DISCOVER or another managed environment
 python -m venv venv
@@ -193,7 +193,7 @@ print('Running prediction...')
 output_file = predictor.predict_and_save()
 
 print(f'√ Prediction complete!')
-print(f'V Output: {output_file}')
+print(f'√ Output: {output_file}')
 "
 ```
 
