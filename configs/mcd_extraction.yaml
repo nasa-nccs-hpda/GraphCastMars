@@ -1,8 +1,8 @@
 # configs/mcd_extraction.yaml
 
-data_location: /discover/nobackup/jli30/systest/MCD_6.1/data/
+data_location: /discover/nobackup/projects/QEFM/data/shared/MCD_6.1/data/
 data_version: '6.1'
-output_path: /discover/nobackup/jli30/GraphCastMars/data/mcd_extracted/
+output_path: /discover/nobackup/jli30/GraphCastMars/data/mcd_processed/
 
 
 # Time ranges

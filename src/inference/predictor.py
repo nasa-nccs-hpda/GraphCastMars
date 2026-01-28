@@ -147,14 +147,13 @@ class GraphCastPredictor:
             logger.error(f"Error loading {file_path}: {e}")
             raise
 
-    def predict(self) -> xr.Dataset:
-        """Run prediction on input data"""
-        path = self.config.input_data_path
+    def predict_single_file(self, input_file: Path) -> xr.Dataset:
+        """Run prediction on single input data"""
 
-        if not path.exists():
-            raise FileNotFoundError(f"Input data not found: {path}")
+        if not input_file.exists():
+            raise FileNotFoundError(f"Input data not found: {input_file}")
         
-        inputs, targets, forcings = self._load_initial_conditions(path)
+        inputs, targets, forcings = self._load_initial_conditions(input_file)
         
         # Create targets template (filled with NaN as in original)
         targets_template = targets * np.nan
@@ -179,7 +178,7 @@ class GraphCastPredictor:
                 forcings=forcings
             )
         
-        logger.info("Prediction complete")
+        logger.info("Prediction complete for {input_file.name}")
         logger.info(f"  Output dimensions: {predictions.dims.mapping}")
         
         return predictions
@@ -225,22 +224,86 @@ class GraphCastPredictor:
 
     def predict_and_save(
         self, 
-        input_data: Optional[xr.Dataset] = None,
-        output_file: Optional[Path] = None
-    ) -> Path:
+        input_path: Optional[Path] = None,
+        output_dir: Optional[Path] = None,
+        file_pattern: str = "*.nc"
+    ) -> List[Path]:
         """
-        Convenience method: predict and save in one call.
+        Run prediction and save results. Handles both single files and directories.
         
         Args:
-            input_data: Input dataset (if None, loads from config)
-            output_file: Output file path (if None, auto-generate)
+            input_path: Path to input file or directory (if None, uses config)
+            output_dir: Output directory (if None, uses config)
+            file_pattern: Glob pattern for files in directory (default: "*.nc")
             
         Returns:
-            Path to saved predictions
+            List of paths to saved prediction files
         """
-        predictions = self.predict()
-        output_path = self.save_predictions(predictions, output_file)
-        return output_path
+        # Use config paths if not provided
+        if input_path is None:
+            input_path = self.config.input_data_path
+        else:
+            input_path = Path(input_path)
+        
+        if output_dir is None:
+            output_dir = self.config.output_path
+        else:
+            output_dir = Path(output_dir)
+        
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Check if input is file or directory
+        if input_path.is_file():
+            # Single file case
+            logger.info(f"Processing single file: {input_path}")
+            
+            predictions = self.predict_single_file(input_path)
+            
+            # Generate output filename based on input
+            output_file = output_dir / f"{input_path.stem}_prediction.nc"
+            saved_path = self.save_predictions(predictions, output_file)
+            
+            return [saved_path]
+        
+        elif input_path.is_dir():
+            # Directory case - process all matching files
+            logger.info(f"Processing directory: {input_path}")
+            logger.info(f"  File pattern: {file_pattern}")
+            
+            # Find all matching files
+            input_files = sorted(input_path.glob(file_pattern))
+            
+            if not input_files:
+                raise ValueError(f"No files matching '{file_pattern}' found in {input_path}")
+            
+            logger.info(f"Found {len(input_files)} files to process")
+            
+            saved_paths = []
+            
+            for i, input_file in enumerate(input_files, 1):
+                logger.info(f"\n[{i}/{len(input_files)}] Processing: {input_file.name}")
+                
+                try:
+                    # Run prediction
+                    predictions = self.predict_single_file(input_file)
+                    
+                    # Generate output filename
+                    output_file = output_dir / f"{input_file.stem}_prediction.nc"
+                    
+                    # Save
+                    saved_path = self.save_predictions(predictions, output_file)
+                    saved_paths.append(saved_path)
+                    
+                except Exception as e:
+                    logger.error(f"Failed to process {input_file.name}: {e}")
+                    continue
+            
+            logger.info(f"\nCompleted: {len(saved_paths)}/{len(input_files)} files processed successfully")
+            
+            return saved_paths
+        
+        else:
+            raise ValueError(f"Input path must be a file or directory: {input_path}")
 
 
 # Convenience function for simple usage

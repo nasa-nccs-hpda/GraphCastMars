@@ -23,10 +23,13 @@ cd GraphCastMars
 ### Step 2: Setup Python Environment
 
 ```bash
-# Load Python/Anaconda (if on HPC)
+# Load Python/Anaconda (if on DISCOVER)
 module load anaconda
+```
 
-# Create virtual environment
+**Optioanl : Create virtual environment**
+```bash 
+# Recommended when not using DISCOVER or another managed environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
@@ -34,7 +37,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Step 3: Setup GraphCast Source Code
+### Step 3: Setup GraphCast Source Code & MCD Library
 
 ```bash
 # Run setup script
@@ -56,13 +59,10 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)/external/graphcast"
 
 ```bash
 # Create necessary directories
-mkdir -p data/mcd_raw
 mkdir -p data/mcd_processed
 mkdir -p data/graphcast_ready
-mkdir -p checkpoints/graphcast
 mkdir -p checkpoints/mars
 mkdir -p predictions
-mkdir -p configs
 ```
 
 ### Step 5: Download Required Files
@@ -88,27 +88,6 @@ cd ../..
 
 ### Step 6: Extract MCD Data
 
-**Generate configuration:**
-
-```bash
-python -c "
-from src.preprocessing.mcd_extractor import MCDConfig
-
-config = MCDConfig(
-    data_location='data/mcd_raw',
-    output_path='./data/mcd_processed',
-    data_version='6.1',
-    ls_range=(0, 361, 1),      # Solar longitude: 0-360°, every 5°
-    lct_range=(0, 24, 6),       # Local time: 0-24h, every 6h
-    mars_year=37,
-    zkey=3,                     # Height above surface
-    hrkey=0                     # No high-res topography
-)
-config.to_yaml('configs/mcd_extraction.yaml')
-print('✓ Config saved to configs/mcd_extraction.yaml')
-"
-```
-
 **Edit the config** if needed:
 ```bash
 nano configs/mcd_extraction.yaml
@@ -125,8 +104,8 @@ config = MCDConfig.from_yaml('configs/mcd_extraction.yaml')
 extractor = MCDExtractor(config)
 output_files = extractor.extract_range()
 
-print(f'✓ Extraction complete! Generated {len(output_files)} files')
-print(f'✓ Output: {config.output_path}')
+print(f'√ Extraction complete! Generated {len(output_files)} files')
+print(f'√ Output: {config.output_path}')
 "
 ```
 
@@ -140,29 +119,6 @@ data/mcd_processed/
 ```
 
 ### Step 7: Format Data for GraphCast
-
-**Generate configuration:**
-
-```bash
-python -c "
-from src.preprocessing.graphcast_formatter import GraphCastFormatterConfig
-
-config = GraphCastFormatterConfig(
-    mcd_data_path='./data/mcd_processed',
-    era5_sample_path='/discover/nobackup/projects/QEFM/data/FMGenCast/6hr/samples/graph',  
-    era5_stats_path='./checkpoints/graphcast/stats_mean_by_level.nc',
-    output_path='./data/graphcast_ready',
-    start_date='2022-03-20',
-    num_days=1,
-    time_step_hours=6,
-    num_input_steps=2,
-    num_output_steps=10,
-    experiment_name='mcd_temperature'
-)
-config.to_yaml('configs/graphcast_format.yaml')
-print('✓ Config saved to configs/graphcast_format.yaml')
-"
-```
 
 **Edit variable strategies** (which variables come from MCD vs constants):
 ```bash
@@ -208,8 +164,8 @@ formatter = GraphCastFormatter(config)
 results = formatter.process_all_dates()
 
 total_files = sum(len(v) for v in results.values())
-print(f'✓ Formatting complete! Generated {total_files} files')
-print(f'✓ Output: {config.output_path}')
+print(f'√ Formatting complete! Generated {total_files} files')
+print(f'√ Output: {config.output_path}')
 "
 ```
 
