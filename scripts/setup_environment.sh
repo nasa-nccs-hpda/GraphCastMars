@@ -33,6 +33,8 @@ PPROJECT_ROOT=${PWD}
 cp /discover/nobackup/projects/QEFM/data/shared/mcd_lib/*.so ${PROJECT_ROOT}/src/preprocessing.
 MCD_LIB_PATH="${PPROJECT_ROOT}/src/preprocessing/mcd_lib"
 export PYTHONPATH="${PYTHONPATH}:${MCD_LIB_PATH}"
+echo "export PYTHONPATH=\"\${PYTHONPATH}:${MCD_LIB_PATH}\"" >> .env
+echo "✅ Added to PYTHONPATH (saved to .env)"
 
 # Install other dependencies
 #echo "📦 Installing dependencies..."
