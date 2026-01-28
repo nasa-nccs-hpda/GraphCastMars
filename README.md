@@ -41,7 +41,7 @@ pip install -r requirements.txt
 
 ```bash
 # Run setup script
-bash scripts/setup_environment.sh
+source scripts/setup_environment.sh
 ```
 
 **Or manually:**
