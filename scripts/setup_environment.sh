@@ -15,18 +15,18 @@ else
 fi
 
 # Add to Python path using .pth file
-SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])" 2>/dev/null)
+# SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])" 2>/dev/null)
 
-if [ -n "$SITE_PACKAGES" ]; then
-    PROJECT_ROOT=${PWD}
-    echo "${PROJECT_ROOT}/external/graphcast" > "${SITE_PACKAGES}/graphcast_dev.pth"
-    echo "✅ Added GraphCast to Python path: ${SITE_PACKAGES}/graphcast_dev.pth"
-else
-    echo "⚠️  Could not find site-packages, using PYTHONPATH instead"
-    export PYTHONPATH="${PYTHONPATH}:${PWD}/external/graphcast"
-    echo "export PYTHONPATH=\"\${PYTHONPATH}:${PWD}/external/graphcast\"" >> .env
-    echo "✅ Added to PYTHONPATH (saved to .env)"
-fi
+# if [ -n "$SITE_PACKAGES" ]; then
+#     PROJECT_ROOT=${PWD}
+#     echo "${PROJECT_ROOT}/external/graphcast" > "${SITE_PACKAGES}/graphcast_dev.pth"
+#     echo "✅ Added GraphCast to Python path: ${SITE_PACKAGES}/graphcast_dev.pth"
+# else
+echo "⚠️  Could not find site-packages, using PYTHONPATH instead"
+export PYTHONPATH="${PYTHONPATH}:${PWD}/external/graphcast"
+echo "export PYTHONPATH=\"\${PYTHONPATH}:${PWD}/external/graphcast\"" >> .env
+echo "✅ Added to PYTHONPATH (saved to .env)"
+# fi
 
 # Add MCD library to Python path
 PPROJECT_ROOT=${PWD}
