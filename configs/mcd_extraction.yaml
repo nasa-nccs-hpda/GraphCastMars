@@ -5,7 +5,7 @@
 # ============================================================
 # Data Source
 # ============================================================
-data_location: /discover/nobackup/projects/QEFM/data/shared/MCD_6.1/data
+data_location: /discover/nobackup/projects/QEFM/data/shared/MCD_6.1/data/
 data_version: '6.1'
 output_path: ./data/mcd_processed
 
