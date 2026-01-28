@@ -512,8 +512,11 @@ class GraphCastFormatter:
         dates = self._generate_datetime_sequence()
         results = {}
         for date in dates:
-            output_files = self.process_single_date(date)
-            results[date] = output_files
+            try:
+                output_files = self.process_single_date(date)
+                results[date] = output_files
+            except Exception as e:
+                logger.error(f"Error processing date {date}: {e}")
         return results
 
 

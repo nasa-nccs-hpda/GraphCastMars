@@ -162,7 +162,7 @@ config = GraphCastFormatterConfig.from_yaml('configs/graphcast_format.yaml')
 formatter = GraphCastFormatter(config)
 results = formatter.process_all_dates()
 
-total_files = sum(len(v) for v in results.values())
+total_files = len(results)
 print(f'√ Formatting complete! Generated {total_files} files')
 print(f'√ Output: {config.output_path}')
 "
