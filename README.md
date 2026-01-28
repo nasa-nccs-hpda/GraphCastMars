@@ -179,27 +179,6 @@ data/graphcast_ready/
 
 ### Step 8: Run Predictions
 
-**Generate inference configuration:**
-
-```bash
-python -c "
-from src.inference.predictor import InferenceConfig
-
-config = InferenceConfig(
-    model_checkpoint='./checkpoints/graphcast/params_GraphCast_mars.npz',
-    stats_dir='./checkpoints/graphcast/',
-    input_data_path='./data/graphcast_ready/graphcast_dataset_source-era5-mcd_date-2022-03-20-T00_res-1.0_levels-13_steps-10.nc',
-    output_path='./predictions',
-    num_steps=10,               # Forecast 10 steps (60 hours at 6h/step)
-    autoregressive=True,
-    use_chunked_prediction=True,
-    save_intermediate=False,
-    compress=True
-)
-config.to_yaml('configs/inference.yaml')
-print('✓ Config saved to configs/inference.yaml')
-"
-```
 
 **Run prediction:**
 ```bash
@@ -212,11 +191,10 @@ config = InferenceConfig.from_yaml('configs/inference.yaml')
 predictor = GraphCastPredictor(config)
 
 print('Running prediction...')
-predictions = predictor.predict()
-output_file = predictor.save_predictions(predictions)
+output_file = predictor.predict_and_save()
 
-print(f'✓ Prediction complete!')
-print(f'✓ Output: {output_file}')
+print(f'√ Prediction complete!')
+print(f'V Output: {output_file}')
 "
 ```
 
