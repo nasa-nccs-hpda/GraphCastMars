@@ -512,8 +512,8 @@ class GraphCastFormatter:
         """Process all dates in the configuration"""
         dates = self._generate_datetime_sequence()
         results = {}
-        print(dates)
         for date in dates:
+            print(date)
             try:
                 output_files = self.process_single_date(date)
                 results[date] = output_files
