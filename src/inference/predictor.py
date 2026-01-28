@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Tuple
 import logging
 import functools
-
+import sys
 import xarray as xr
 import numpy as np
 import jax
@@ -306,55 +306,77 @@ class GraphCastPredictor:
             raise ValueError(f"Input path must be a file or directory: {input_path}")
 
 
-# Convenience function for simple usage
-def run_inference(
-    checkpoint_path: Path,
-    stats_dir: Path,
-    input_data_path: Path,
-    output_path: Path,
-    num_steps: int = 4
-) -> Path:
+def main():
     """
-    Simple inference function that mirrors original script usage.
+    Main entry point for running predictions from command line.
     
-    Example:
-        >>> output = run_inference(
-        ...     checkpoint_path=Path("checkpoints/params_GraphCast_small.npz"),
-        ...     stats_dir=Path("checkpoints/graphcast/"),
-        ...     input_data_path=Path("data/source-era5-mcd_date-2022-01-01.nc"),
-        ...     output_path=Path("predictions/"),
-        ...     num_steps=4
-        ... )
+    Usage:
+        python -m src.inference.predictor
+        python -m src.inference.predictor --config configs/custom_inference.yaml
     """
-    config = InferenceConfig(
-        model_checkpoint=checkpoint_path,
-        stats_dir=stats_dir,
-        input_data_path=input_data_path,
-        output_path=output_path,
-        num_steps=num_steps
+    import argparse
+    
+    # Setup logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    predictor = GraphCastPredictor(config)
-    return predictor.predict_and_save()
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Run GraphCast predictions on Mars data'
+    )
+    parser.add_argument(
+        '--config',
+        type=str,
+        default='configs/inference.yaml',
+        help='Path to inference configuration file (default: configs/inference.yaml)'
+    )
+    
+    args = parser.parse_args()
+    
+    try:
+        # Load configuration
+        logger.info(f"Loading configuration from: {args.config}")
+        config = InferenceConfig.from_yaml(Path(args.config))
+        
+        # Display configuration
+        print("\n" + "="*60)
+        print("GraphCast Mars Inference")
+        print("="*60)
+        print(f"Model checkpoint:  {config.model_checkpoint}")
+        print(f"Stats directory:   {config.stats_dir}")
+        print(f"Input data:        {config.input_data_path}")
+        print(f"Output directory:  {config.output_path}")
+        print(f"Prediction steps:  {config.num_steps}")
+        print(f"Lead time:         {config.target_lead_times} per step")
+        print("="*60)
+        print()
+        
+        # Initialize predictor
+        logger.info("Initializing predictor...")
+        predictor = GraphCastPredictor(config)
+        
+        # Run predictions
+        logger.info("Running predictions...")
+        output_files = predictor.predict_and_save()
+        
+        # Report results
+        print()
+        print("="*60)
+        print("✓ Prediction Complete!")
+        print("="*60)
+        
+        return 0
+        
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
+        return 1
+    except Exception as e:
+        logger.error(f"Error during prediction: {e}")
+        logger.exception("Full traceback:")
+        return 1
 
 
-# Example usage matching original script
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    
-    # Paths (matching original script structure)
-    checkpoint_path = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast/params_GraphCast_small.npz")
-    stats_dir = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/checkpoints/graphcast")
-    input_data = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/format_out/graphcast_dataset_source-era5-mcd_date-2022-03-20-T00_res-1.0_levels-13_steps-7.nc")
-    output_dir = Path("/discover/nobackup/jli30/systest/Graphcast_Mars_test/pred_out")
-    
-    # Run inference
-    output_file = run_inference(
-        checkpoint_path=checkpoint_path,
-        stats_dir=stats_dir,
-        input_data_path=input_data,
-        output_path=output_dir,
-        num_steps=4
-    )
-    
-    print(f"✅ Predictions saved to {output_file}")
+    sys.exit(main())
