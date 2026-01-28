@@ -77,6 +77,6 @@ variable_strategies:
     strategy: 'keep_era5'
 
 # File naming patterns
-mcd_filename_pattern: "mcd_output_{date}-hr{hour:02d}.nc"
+mcd_filename_pattern: "mcd_output_{date}_hr{hour:02d}.nc"
 era5_filename_pattern: "graphcast-dataset-source-era5_date-{date}_res-{res}_levels-13_steps-4.nc"
 output_filename_pattern: "graphcast_dataset_source-era5-mcd_date-{date}-T{hour:02d}_res-{res}_levels-13_steps-{steps}.nc"
