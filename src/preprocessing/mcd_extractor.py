@@ -110,7 +110,7 @@ class MCDConfig:
         if not config_path.exists():
             raise FileNotFoundError(f"Config file not found: {config_path}")
 
-        yaml = YAML(type="safe")
+        yaml = YAML(typ="safe")
 
         with open(config_path, "r") as f:
             config_dict = yaml.load(f)
