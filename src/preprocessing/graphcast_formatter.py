@@ -457,7 +457,6 @@ class GraphCastFormatter:
     def process_single_date(self, date: datetime) -> List[Path]:
         """Process data for a single date"""
         logger.info(f"Processing date: {date}")
-        print("INSIDR" , date)
         
         # Load MCD data
         mcd_ds = self._load_mcd_files(date)
@@ -474,10 +473,8 @@ class GraphCastFormatter:
             mcd_ds_regridded,
             num_timesteps=self.config.num_input_steps
         )
-        print("PROCESSED DS", processed_ds.sizes)
         # Extend MCD time dimension (if needed)
         extend_ds = self._extend_time_dim(processed_ds, n_steps=self.config.num_output_steps)
-        print("EXTEND DS", extend_ds.sizes)
         # Align MCD time coordinates with ERA5
         #num_total_steps = self.config.num_input_steps + self.config.num_output_steps
         # mcd_ds = mcd_ds.assign_coords(time=era5_ds.time.values[:num_total_steps])
@@ -491,7 +488,6 @@ class GraphCastFormatter:
             res=self.config.target_resolution,
             steps=num_total_steps
         )
-        print("OUTPUT FILE", output_file)
         extend_ds.to_netcdf(output_file, mode='w')
         logger.info(f"Saved: {output_file}")
         # for i, hour in enumerate(hours):
@@ -514,17 +510,10 @@ class GraphCastFormatter:
     def process_all_dates(self) -> Dict[str, List[Path]]:
         """Process all dates in the configuration"""
         dates = self._generate_datetime_sequence()
-        print(dates)
         results = {}
         for date in dates:
-            print(date)
-            try:
-                output_files = self.process_single_date(date)
-                results[date] = output_files
-            except Exception as e:
-                logger.error(f"Error processing date {date}: {e}")
-                results[date] = []
-        
+            output_files = self.process_single_date(date)
+            results[date] = output_files
         return results
 
 
