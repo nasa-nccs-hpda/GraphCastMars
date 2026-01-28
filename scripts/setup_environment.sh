@@ -29,10 +29,9 @@ echo "✅ Added to PYTHONPATH (saved to .env)"
 # fi
 
 # Add MCD library to Python path
-PROJECT_ROOT=${PWD}
-cp /discover/nobackup/projects/QEFM/data/shared/mcd_lib/*.so ${PROJECT_ROOT}/src/preprocessing/.
-MCD_LIB_PATH="${PPROJECT_ROOT}/src/preprocessing/"
-export PYTHONPATH="${PYTHONPATH}:${MCD_LIB_PATH}"
+cp /discover/nobackup/projects/QEFM/data/shared/mcd_lib/*.so ${PWD}/src/preprocessing/.
+MCD_LIB_PATH="${PWD}/src/preprocessing"
+export PYTHONPATH="${PYTHONPATH}:${PWD}/src/preprocessing"
 echo "export PYTHONPATH=\"\${PYTHONPATH}:${MCD_LIB_PATH}\"" >> .env
 echo "✅ Added to PYTHONPATH (saved to .env)"
 
