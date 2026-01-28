@@ -186,7 +186,7 @@ sbatch --partition=gpu_a100 --constraint=rome --ntasks=10 --gres=gpu:1 --mem-per
 
 **Expected output:**
 ```
-predictions/
+data/predictions/
 └── graphcast_dataset_source-era5-mcd_date-2022-03-20-T00_res-1.0_levels-13_steps-10_prediction.nc  (All forecast steps)
 ```
 
