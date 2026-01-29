@@ -1,4 +1,4 @@
-# src/training/checkpoint_utils.py
+# src/models/checkpoint_utils.py
 
 import xarray as xr
 from pathlib import Path

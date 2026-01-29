@@ -1,57 +1,158 @@
 # configs/mcd_extraction.yaml
 
-data_location: /discover/nobackup/jli30/systest/MCD_6.1/data/
+# Configuration for extracting Mars Climate Database (MCD) data
+
+# ============================================================
+# Data Source
+# ============================================================
+data_location: /discover/nobackup/projects/QEFM/data/shared/MCD_6.1/data/
 data_version: '6.1'
-output_path: /discover/nobackup/projects/nccs_interns/mvu2/jli/data/hrkey0
+output_path: ./data/mcd_processed
 
-# Query parameters
-zkey: 3
-hrkey: 0
+# ============================================================
+# Query Parameters
+# ============================================================
+zkey: 3                         # Vertical coordinate key (3 = height above surface)
+hrkey: 0                        # High-resolution topography (0 = off, 1 = on)
 
-# Time ranges
-ls_range: [0, 361, 5]
-lct_range: [0, 24, 6]
+# ============================================================
+# Time Range Settings
+# ============================================================
+# Solar longitude (Ls) range: [start, stop, step]
+ls_range: [0, 3, 1]           # 0-360°, every 5° (72 points)
+
+# Local time range: [start, stop, step]
+lct_range: [0, 24, 6]           # 0-24h, every 6h (4 points)
+
+# Mars Year for date conversion
 mars_year: 37
 
-# Mars physical constants
-mars_gravity: 3.71
-mars_gas_constant: 188.9
-mars_radius: 3389500.0
+# ============================================================
+# Mars Physical Constants
+# ============================================================
+mars_gravity: 3.71              # m/s^2
+mars_gas_constant: 188.9        # J/kg/K
+mars_radius: 3389500.0          # m (3389.5e3)
 
-# Vertical coordinates (heights in meters, descending)
-vertical_heights: [32030, 24620, 20280, 17210, 14820, 12870, 9800, 7410, 5460, 3810, 1740, 830, 50]
-pressure_levels: [50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 850, 925, 1000]
+# ============================================================
+# Vertical Levels
+# ============================================================
+# Heights above surface [meters]
+vertical_heights:
+  - 50
+  - 830
+  - 1740
+  - 3810
+  - 5460
+  - 7410
+  - 9800
+  - 12870
+  - 14820
+  - 17210
+  - 20280
+  - 24620
+  - 32030
 
-# 2D Variables
+# Corresponding pressure levels [hPa]
+pressure_levels:
+  - 1000
+  - 925
+  - 850
+  - 700
+  - 600
+  - 500
+  - 400
+  - 300
+  - 250
+  - 200
+  - 150
+  - 100
+  - 50
+
+# ============================================================
+# 2D Variables to Extract
+# ============================================================
 variables_2d:
   - var_id: 93
     name: '2m_temperature'
     xz_level: 2
     description: '2m temperature'
+  
   - var_id: 15
     name: 'mean_sea_level_pressure'
     xz_level: 1
-    description: 'Mean sea level pressure'
-  # ... add more as needed
+    description: 'mean sea level pressure'
+  
+  - var_id: 94
+    name: '10m_u_component_of_wind'
+    xz_level: 10
+    description: '10m u-wind'
+  
+  - var_id: 95
+    name: '10m_v_component_of_wind'
+    xz_level: 10
+    description: '10m v-wind'
+  
+  - var_id: 14
+    name: 'sea_surface_temperature'
+    xz_level: 1
+    description: 'surface temperature'
+  
+  - var_id: 29
+    name: 'toa_incident_solar_radiation'
+    xz_level: 1
+    description: 'TOA solar radiation'
+  
+  - var_id: 4
+    name: 'orography'
+    xz_level: 1
+    description: 'surface orographic height'
 
-# 3D Variables
+# ============================================================
+# 3D Variables to Extract
+# ============================================================
 variables_3d:
   - var_id: 93
     name: 'temperature'
-    description: 'Temperature profile'
+    description: 'Temperature'
+  
   - var_id: 17
     name: 'geopotential'
     description: 'Geopotential'
-  # ... add more
+  
+  - var_id: 94
+    name: 'u_component_of_wind'
+    description: 'U-wind'
+  
+  - var_id: 95
+    name: 'v_component_of_wind'
+    description: 'V-component'
+  
+  - var_id: 18
+    name: 'vertical_velocity'
+    description: 'Vertical velocity'
+  
+  - var_id: 41
+    name: 'specific_humidity'
+    description: 'Dust mass mixing ratio'
 
-# Processing options
-pressure_scaling: 300.0
-geopotential_scaling: 75000.0
-include_precipitation: true
-include_land_sea_mask: true
+# ============================================================
+# Processing Options
+# ============================================================
+pressure_scaling: 300.0         # Scale factor for pressure
+geopotential_scaling: 75000.0   # 1e5 * 0.75
 
-# Mars year reference
-mars_year_reference_date: "1955-04-11"
-mars_year_days: 686.97
+# Placeholder variables (Mars-specific)
+include_precipitation: true     # Add zero precipitation field
+include_land_sea_mask: true     # Add land-sea mask (all land for Mars)
 
-netcdf_format: NETCDF4
+# ============================================================
+# Mars Year Reference for Date Conversion
+# ============================================================
+mars_year_reference_date: '1955-04-11'  # Mars Year 1, Ls=0
+mars_year_days: 686.97                   # Mars year length in Earth days
+
+# ============================================================
+# Output Format
+# ============================================================
+netcdf_format: 'NETCDF4'

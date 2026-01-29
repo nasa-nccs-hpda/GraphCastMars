@@ -1,5 +1,10 @@
 # requirements.txt
 
+python_requires=3.11.7
+
+# Pin NumPy to 1.x (MCD library compatibility)
+numpy=1.26.3
+
 # Core dependencies
 click>=8.1.0
 pyyaml>=6.0.1

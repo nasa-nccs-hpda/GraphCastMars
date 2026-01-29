@@ -1,0 +1,21 @@
+# configs/inference.yaml
+
+# Model checkpoint
+model_checkpoint: ./checkpoints/graphcast/params_GraphCast_mars.npz
+
+# Normalization statistics
+stats_dir: ./checkpoints/graphcast
+
+# Input data
+input_data_path: ./data/graphcast_ready/  # Can be a file or directory
+output_path: ./data/predictions
+
+# Prediction settings
+num_steps: 4                    # Number of forecast steps
+target_lead_times: 6h               # Hours per step
+autoregressive: True             # Use previous prediction as next input
+
+# Output options
+save_format: netcdf              # netcdf, zarr
+save_intermediate: False          # Save each timestep
+compress: True

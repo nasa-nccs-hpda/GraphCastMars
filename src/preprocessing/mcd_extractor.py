@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Tuple, Optional, Union
 from pathlib import Path
 import pandas as pd
-import yaml
+from ruamel.yaml import YAML
 import logging
 
 logger = logging.getLogger(__name__)
@@ -106,27 +106,42 @@ class MCDConfig:
     def from_yaml(cls, config_path: Union[str, Path]) -> 'MCDConfig':
         """Load configuration from YAML file"""
         config_path = Path(config_path)
-        
+
         if not config_path.exists():
             raise FileNotFoundError(f"Config file not found: {config_path}")
-        
-        with open(config_path, 'r') as f:
-            config_dict = yaml.safe_load(f)
+
+        yaml = YAML(typ="safe")
+
+        with open(config_path, "r") as f:
+            config_dict = yaml.load(f)
+
         return cls(**config_dict)
     
     def to_yaml(self, output_path: Union[str, Path]):
-        """Save configuration to YAML file"""
+        """Update or write configuration to YAML while preserving format"""
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Convert Path objects to strings for YAML serialization
-        config_dict = {
-            k: str(v) if isinstance(v, Path) else v 
-            for k, v in self.__dict__.items()
-        }
-        
-        with open(output_path, 'w') as f:
-            yaml.dump(config_dict, f, default_flow_style=False)
+
+        yaml = YAML()
+        yaml.preserve_quotes = True
+        yaml.indent(mapping=2, sequence=4, offset=2)
+
+        # Load existing YAML if it exists
+        if output_path.exists():
+            with open(output_path, "r") as f:
+                config = yaml.load(f)
+        else:
+            config = {}
+
+        # Update / insert keys from self
+        for k, v in self.__dict__.items():
+            if isinstance(v, Path):
+                v = str(v)
+            config[k] = v   # updates if exists, inserts if not
+
+        # Write back preserving format
+        with open(output_path, "w") as f:
+            yaml.dump(config, f)
 
 
 class MarsPhysics:
