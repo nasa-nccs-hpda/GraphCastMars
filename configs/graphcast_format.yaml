@@ -31,6 +31,22 @@ variable_strategies:
   - name: 'temperature'
     strategy: 'mcd'
     scale_to_era5: true
+
+  - name: '10m_u_component_of_wind'
+    strategy: 'mcd'
+    scale_to_era5: true
+  
+  - name: '10m_v_component_of_wind'
+    strategy: 'mcd'
+    scale_to_era5: true
+  
+  - name: 'u_component_of_wind'
+    strategy: 'mcd'
+    scale_to_era5: true
+
+  - name: 'v_component_of_wind'
+    strategy: 'mcd'
+    scale_to_era5: true
   
   # Use MCD topography
   - name: 'geopotential_at_surface'
@@ -45,18 +61,6 @@ variable_strategies:
     strategy: 'era5_mean'
   
   - name: 'vertical_velocity'
-    strategy: 'era5_mean'
-  
-  - name: '10m_u_component_of_wind'
-    strategy: 'era5_mean'
-  
-  - name: '10m_v_component_of_wind'
-    strategy: 'era5_mean'
-  
-  - name: 'u_component_of_wind'
-    strategy: 'era5_mean'
-  
-  - name: 'v_component_of_wind'
     strategy: 'era5_mean'
   
   # Set to constants
