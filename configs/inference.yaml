@@ -1,7 +1,7 @@
 # configs/inference.yaml
 
 # Model checkpoint
-model_checkpoint: ./checkpoints/graphcast/params_GraphCast_mars.npz
+model_checkpoint: ./checkpoints/graphcast/params_GraphCast_mars_TUV.npz
 
 # Normalization statistics
 stats_dir: ./checkpoints/graphcast
