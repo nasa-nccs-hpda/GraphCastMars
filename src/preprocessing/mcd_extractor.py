@@ -265,6 +265,7 @@ class MCDQueryHelper:
         orography = None  # Store for geopotential calculation
         
         for var_config in self.config.variables_2d:
+            var_config = VariableConfig(**var_config.__dict__)  # Ensure we have a proper dataclass instance
             field = self.get_variable_slice(var_config.var_id, var_config.xz_level)
             # coords = {
             #     'lat': self.query.ycoord,
@@ -340,6 +341,7 @@ class MCDQueryHelper:
         data_vars = {}
         
         for var_config in self.config.variables_3d:
+            var_config = VariableConfig(**var_config.__dict__)  # Ensure we have a proper dataclass instance
             field_list = []
             
             # Extract at each vertical level
