@@ -1,6 +1,6 @@
 # GraphCast Mars - Climate Data Processing and Prediction Pipeline
 
-Process Mars Climate Database (MCD) data and run GraphCast predictions for Mars temperature forecasting. Optionally fine-tune GraphCast models on Mars data.
+Process Mars Climate Database (MCD) data and run GraphCast predictions for Mars **temperature and wind** forecasting. Optionally fine-tune GraphCast models on Mars data.
 
 ## Quick Start (No Installation Required)
 
